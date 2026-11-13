@@ -242,3 +242,52 @@ describe("TuxArchitectureMap: a faded card fades by colour, not by opacity (#229
     });
   });
 });
+
+// --- the trailing cursor's colour (#256) ------------------------------------------------------
+
+describe("TuxArchitectureMap: the trailing cursor takes a TUX token per theme, 3:1 on the canvas (#256)", () => {
+  const DARK_RULE = customProperties(declarationsOf(MAP, '[data-theme="tti-dark"] .tux-map'));
+  const DARK = THEMES["tti-dark"]!;
+  const SOFT = { ...DARK, ...customProperties(block(GLOBALS, '[data-theme="tti-dark"][data-theme-variant="soft"],')) };
+  const FIELD = { ...BASE, ...customProperties(block(GLOBALS, '[data-theme-variant="field-sunlight"],')) };
+  /** Each theme as TUX applies it: its tokens, and whether `[data-theme="tti-dark"]` is on the root. */
+  const GROUNDS: Record<string, { vars: Record<string, string>; dark: boolean }> = {
+    tti: { vars: BASE, dark: false },
+    "tti field-sunlight": { vars: FIELD, dark: false },
+    "tti-hc": { vars: THEMES["tti-hc"]!, dark: false },
+    "tti-dark": { vars: DARK, dark: true },
+    "tti-dark soft": { vars: SOFT, dark: true },
+  };
+  // the colour-vision palettes remap --brand-*: the light block on a light theme, the dark one on a dark theme
+  for (const mode of ["okabe-ito", "deutan-protan", "tritan", "monochrome"]) {
+    const light = customProperties(block(GLOBALS, `[data-cvd-mode="${mode}"] {`));
+    const dark = customProperties(block(GLOBALS, `html.dark[data-cvd-mode="${mode}"],`));
+    for (const [name, g] of Object.entries({ ...GROUNDS })) {
+      if (name.includes("+")) continue;
+      GROUNDS[`${name} + ${mode}`] = { vars: { ...g.vars, ...(g.dark ? dark : light) }, dark: g.dark };
+    }
+  }
+
+  it("draws the dot and the disc in --tux-map-cursor, which is a TUX token in each theme, never a raw colour", () => {
+    expect(property(declarationsOf(MAP, ".tux-map__cursor i"), "background")).toBe("var(--tux-map-cursor)");
+    for (const value of [MAP_VARS["--tux-map-cursor"], DARK_RULE["--tux-map-cursor"]]) {
+      expect(value).toMatch(/^var\(--[\w-]+\)$/);
+      // a token the TUX theme files define
+      expect(BASE[/^var\((--[\w-]+)\)$/.exec(value!)![1]!]).toBeDefined();
+    }
+    // its own colour in the dark themes, not the light one's
+    expect(DARK_RULE["--tux-map-cursor"]).not.toBe(MAP_VARS["--tux-map-cursor"]);
+    // and nowhere a hex, white or a blend in the cursor's rules
+    for (const sel of [".tux-map__cursor", ".tux-map__cursor i", ".tux-map__cursor i:first-child"]) {
+      expect(declarationsOf(MAP, sel), sel).not.toMatch(/#[\da-f]{3,8}\b|\bwhite\b|rgba?\(|mix-blend-mode/i);
+    }
+  });
+
+  it.each(Object.keys(GROUNDS))("holds 3:1 or more on the canvas in %s", (name) => {
+    const g = GROUNDS[name]!;
+    const scope = { ...MAP_VARS, ...(g.dark ? DARK_RULE : {}) };
+    const canvas = colour("var(--surface-sunken)", g.vars, scope);
+    const cursor = colour("var(--tux-map-cursor)", g.vars, scope);
+    expect(ratio(cursor, canvas)).toBeGreaterThanOrEqual(3);
+  });
+});

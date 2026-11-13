@@ -2937,12 +2937,16 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // 100,103 B together on macOS; the Linux CI runner measures the same tree at 100,569 B. The budget
   // is 101,000 B, which holds on both with a few hundred bytes to spare.
   // Phase 1 of the performance epic (#221: #222–#231) added 1,118 B more (101,221 B on macOS,
-  // about 101,690 B on the Linux runner), so the budget is 102,000 B until #242 sets it once.
-  // The blast intents' definitions and the key line that shows them (#259) add about 880 B
-  // (102,200 B on macOS), so the budget is 103,000 B.
+  // about 101,690 B on the Linux runner), so the budget was 102,000 B.
+  // The canvas's level mark (#260) and its held, centred height (#261) added 409 B on macOS
+  // (101,313 B to 101,722 B) and 448 B on the Linux runner (101,744 B to 102,192 B, the runner's
+  // zlib being Node 22's on x86). The cards' fixed size (#257, #258) took off about 170 B and the
+  // cursor behind the cards (#256) added about 130 B. The blast intents' definitions and the key
+  // line that shows them (#259) add about 880 B more, so the budget is 103,500 B until #242 sets it
+  // once at the end of the epic.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 103,000 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 103,500 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2983,7 +2987,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(103_000);
+    expect(gzipBytes).toBeLessThan(103_500);
   });
 });
 

@@ -553,7 +553,7 @@ const navTree = [
       { label: "Logos & brand",  to: "/resources/logos", icon: "lucide:stamp" },
       { label: "Specimens",      to: "/preview",        icon: "lucide:image" },
       { label: "Markdown",       to: "/markdown",       icon: "lucide:file-text" },
-      { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
+      { label: "Accessibility",  to: "/accessibility",  icon: "tux:accessibility" },
       { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
     ],
   },
@@ -2000,7 +2000,8 @@ useTuxVisionPrefs();
                 "
                 @click="toggleHighContrast"
               >
-                <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+                <!-- filled while on (#253); the footer's own colour, which the maroon footer needs -->
+                <UIcon :name="isHighContrast ? 'tux:accessibility-active' : 'tux:accessibility'" class="w-3.5 h-3.5" />
                 <span>
                   {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
                 </span>
@@ -2026,7 +2027,7 @@ useTuxVisionPrefs();
             </div>
             <template #fallback>
               <span class="inline-flex items-center gap-1">
-                <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+                <UIcon name="tux:accessibility" class="w-3.5 h-3.5" />
                 <span>High-contrast mode</span>
               </span>
             </template>

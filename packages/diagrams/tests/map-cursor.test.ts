@@ -9,11 +9,12 @@
 import { describe, expect, it } from "vitest";
 import {
   TUX_MAP_CURSOR_DISC,
+  TUX_MAP_CURSOR_OMEGA,
   tuxMapCursorSpring,
   tuxMapCursorTarget,
 } from "../app/composables/useTuxMapCursor";
 
-const OMEGA = 18;
+const OMEGA = TUX_MAP_CURSOR_OMEGA;
 
 /** Runs the spring at a fixed frame time; returns every position it passed through. */
 function run(x: number, v: number, to: number, frames: number, dt = 1 / 60): { xs: number[]; v: number } {
@@ -63,6 +64,24 @@ describe("tuxMapCursorSpring: a critically damped spring (#208)", () => {
   it("at its target and still, it stays", () => {
     expect(tuxMapCursorSpring(42, 0, 42, 1 / 60, OMEGA)).toEqual([42, 0]);
   });
+
+  it("follows faster than #208's spring did, and still trails (#256)", () => {
+    /** Frames at 60 Hz until a 100 px move is within `left` px of the pointer. */
+    const framesTo = (omega: number, left: number) => {
+      let [x, v] = [0, 0];
+      let n = 0;
+      while (100 - x > left) {
+        [x, v] = tuxMapCursorSpring(x, v, 100, 1 / 60, omega);
+        n++;
+      }
+      return n;
+    };
+    // #208 took 13 frames to be within 10 px; a third or so less now, and not so fast it stops trailing
+    expect(framesTo(18, 10)).toBe(13);
+    expect(framesTo(OMEGA, 10)).toBeLessThanOrEqual(10);
+    expect(framesTo(OMEGA, 10)).toBeGreaterThanOrEqual(6);
+    expect(framesTo(OMEGA, 50)).toBeGreaterThanOrEqual(3);
+  });
 });
 
 describe("tuxMapCursorTarget: where the disc rests (#208)", () => {
@@ -77,13 +96,12 @@ describe("tuxMapCursorTarget: where the disc rests (#208)", () => {
     ]);
   });
 
-  it("over a card it is the card's box and the padding around it, with rounded corners, thinned to a wash", () => {
+  it("over a card it is the card's box and the padding around it, with rounded corners, opaque", () => {
     // a 200 x 90 card at (40, 60), 6 px of padding: centre (140, 105), 212 x 102
     const t = tuxMapCursorTarget(50, 70, { x: 40, y: 60, w: 200, h: 90 }, 6, false);
     expect(t.slice(0, 5)).toEqual([140, 105, 212, 102, 13]);
-    // a wash: the card under it keeps its own colours, and it is still there to see
-    expect(t[5]).toBeGreaterThanOrEqual(0.05);
-    expect(t[5]).toBeLessThanOrEqual(0.25);
+    // opaque: it is drawn under the card (#256), so what shows is the 6 px ring at full colour
+    expect(t[5]).toBe(1);
   });
 
   it("a small control gets a radius no larger than half its padded height", () => {

@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: c1b2ae9ee77c1c755b7dbcda6e2fe1090b44ec51312307638772cd075f81dd30
+// SOURCE-SHA256: 00f9d354ed83f80dcb05b44205fbee69004df370d9114a9c9d85072306146597
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -479,12 +479,30 @@ export interface TuxMapSubgraph {
     rels?: TuxMapLevelRel[];
 }
 /**
- * Live operational facts shown on an element's card.
+ * Live operational facts shown on an element's card. The card's status line says, in this order of
+ * preference: how many of its instances run (`total` above 1), how its last run ended (`last_run`),
+ * or its `state`. The panel's "State" and the card's accessible name say the same words.
  * @public
  */
 export interface TuxMapElementLiveInfo {
+    /**
+     * What the element is doing now, and what its card says:
+     * `running` and `active`, its process is up ("Running");
+     * `present`, it is installed: a package or a tool, with no process that the model watches ("Installed");
+     * `success`, its last scheduled or one-off run ended without an error ("Last run succeeded");
+     * `inactive`, it is installed but its process is not running ("Installed, not running");
+     * `declared-not-installed`, the configuration names it but it is not installed ("Declared, not installed");
+     * `failed`, its process stopped with an error ("Failed: stopped with an error");
+     * `unknown`, nothing reported its state ("State not reported").
+     */
     state?: "running" | "active" | "present" | "success" | "inactive" | "declared-not-installed" | "failed" | "unknown";
+    /**
+     * How many instances of the element are meant to run: the replicas of a container, the
+     * processes of a service, the jobs of a scheduler, the running parts of a system. Above 1, the
+     * card says "`running` of `total` instances running".
+     */
     total?: number;
+    /** How many of the `total` instances run now; left out, all of them. Below `total` the card's dot is amber, at 0 red. */
     running?: number;
     version?: string;
     update?: string;
@@ -493,6 +511,7 @@ export interface TuxMapElementLiveInfo {
     newer_major?: string;
     unit?: string;
     findings?: string;
+    /** The element's last scheduled or one-off run: `result` "success" ("Last run succeeded"), "failed" ("Last run failed") or another word, shown as it is. */
     last_run?: {
         result: string;
         at?: string;
