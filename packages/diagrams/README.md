@@ -37,6 +37,7 @@ export default defineNuxtConfig({
     - **Vision modes:** `data-vision-stroke="heavy"` thickens the wires and borders. Change markers use TUX's status tokens, which the palettes remap.
     - **Help text:** on a touch screen it talks about taps and swipes; where a plain wheel does not zoom (`wheelZoom` off, or magnified) it says Ctrl+scroll; under the `wheelZoom="click"` veil it says to click the diagram first; it counts the levels the model has, says that Level 4 is the Infrastructure view (so zooming in goes from Level 3 to Level 5) where the model has code below its components, and mentions `+` cards only where one is in view.
     - **Reduced motion (3.9.1):** under `prefers-reduced-motion` nothing on the map moves: wires keep their dashes without flowing, cards and frames change without sliding, and the wheel changes the level without pulling the card.
+    - **Trailing cursor (`cursor`, #208):** decoration, never information: `aria-hidden`, `pointer-events: none`, and nothing it shows is not also shown by the map's own outline on the card near the pointer. It is off for a coarse pointer and under `prefers-reduced-motion` (nothing is drawn; the map's still outline on the nearest card stays), and keyboard users never lose the system cursor: it is hidden only over the background, only while the disc is drawn, and only for a fine pointer.
     - **Keyboard (3.9.1):** `+` acts on the card that has focus and says so when it has nothing inside; after a zoom, focus stays in the map, unless the host page moved it.
 - **`<TuxDiagram>`**: Accessible, responsive Mermaid diagram wrapper supporting flowcharts, sequence diagrams, ERDs, state machines, and Gantt charts.
 - **`useTuxMermaid()`**: Coordinated singleton Mermaid renderer with automatic layout-shift prevention via server-side height estimation.
@@ -52,7 +53,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 
 ### The component: props
 
-`<TuxArchitectureMap>` takes 41 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
+`<TuxArchitectureMap>` takes 42 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
 
 **The model**
 
@@ -108,6 +109,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `ariaLabel` | `string` | `"Interactive multi-level architecture map"` | Accessible name of the diagram region. |
 | `height` | `string` | `"auto"` | CSS height of the diagram's viewport. `"auto"` sizes it to the diagram. |
 | `wheelZoom` | `boolean \| "click"` | `true` | A plain mouse wheel over the diagram changes the level, and the page does not scroll while the pointer is on it. `false` leaves the plain wheel to the page and requires Ctrl or Cmd with the wheel. `"click"` starts the canvas under a "Click to explore" veil and works as `false` until the reader clicks the veil or moves keyboard focus into the canvas, then as `true` until Escape (with nothing else to close and no level to leave), a pointer-down outside the map, focus leaving the map, or the pointer staying outside it for 3 seconds. Ctrl or Cmd with the wheel, and a pinch, change the level in every mode. A touch screen (`pointer: coarse`) gets no veil, and `"click"` works there as `false`. |
+| `cursor` | `boolean` | `false` | A dot sits on the pointer over the diagram and a 40 px disc follows it on a spring. Near a card (the card the map already outlines), or over a control inside the canvas, the disc comes to rest on that target's rounded box and thins to a wash. It inverts what is under it (`mix-blend-mode: difference`), so it reads on light and dark cards in every theme. Decoration only: hidden from assistive technology, never takes a pointer event, and drawn only for a fine pointer with motion allowed and not under the `wheelZoom="click"` veil. While it is drawn the system cursor is hidden over the background only; cards, controls and a drag keep theirs. While the background is dragged the disc is small and stays on the pointer. Its frame loop stops when the disc is at rest or the pointer leaves. |
 
 **Pen, laser and notes**
 

@@ -18,6 +18,17 @@ conventions.
 
 ## [Unreleased]
 
+### Added — Architecture map: `cursor`, a disc that trails the pointer and rests on the card or control it is near (#208)
+
+- `<TuxArchitectureMap cursor>` draws a dot on the pointer over the diagram and a 40 px disc that follows it on a critically damped spring. It does not overshoot when it starts from rest, and its frame loop stops when the disc is at rest or the pointer leaves the canvas: an idle map runs no frames.
+- The disc is the visible form of the card the map already picks near the pointer (the one it outlines, with the 36 px reach it has always had). Near a card, the disc eases to the card's box and 6 px around it and thins to a wash, so the card keeps its colours. Over a control inside the canvas (a `+`, a wire label) it rests on the control's box and 4 px around it. While the disc is drawn, the dashed tether from the pointer to that card is not drawn, because the disc already reaches the card. The outline on the card, and the tether when `cursor` is off, are unchanged.
+- It inverts what is under it (`mix-blend-mode: difference` on white), so it reads on light and dark cards in `tti`, `tti-dark`, `tti-soft-dark` and `tti-hc` with no colour of its own.
+- It is decoration only: `aria-hidden`, `pointer-events: none`, never drawn for a coarse pointer or a touch, never under `prefers-reduced-motion` (the map's still outline on the nearest card is what stays), and not under the `wheelZoom="click"` veil until the map is armed. The system cursor is hidden only over the background, only while the disc is drawn; cards, controls and a drag keep theirs. While the background is dragged, the disc shrinks to 12 px and stays on the pointer.
+- The logic is in `useTuxMapCursor()` (`packages/diagrams/app/composables/`). The pointer and target boxes are read once per pointer move or scroll, and each frame writes only transforms, a radius and an opacity.
+- The map's gzip payload budget goes from 97,000 B to 98,000 B. The cursor adds about 1,460 B: the payload is 97,871 B.
+
+**To check when upgrading:** nothing. `cursor` defaults to `false`, and with it off the map renders and behaves as before.
+
 ### Fixed — Architecture map: the layout faults: the list's details, the toolbar's order, cut card text, faded wires, magnify, the level jump, the blast key, planned links, the More menu (#205)
 
 - **The list view keeps the details beside the outline.** With the outline open the details panel was placed into the outline's 236px column, under it, and its close button floated over the first row of the list. The panel now sits under the list, in the list's column, and its close button is inside it wherever the panel is in the flow (the list view, a narrow map). A path with no space in it wraps inside the panel.
