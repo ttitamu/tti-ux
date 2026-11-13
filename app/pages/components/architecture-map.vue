@@ -82,7 +82,9 @@ const exampleCode = `<TuxArchitectureMap
           Attach <code>diff</code> metadata and <code>source</code> file/line references to any
           element or deployment node. Toggling <strong>Blast radius</strong> rolls up inner
           changes to parent containers, highlights 1–2 hop impacted neighbors and wires, and
-          links directly to source files and roadmap issues in the inspector drawer.
+          links directly to source files and roadmap issues in the inspector drawer. The intent
+          beside the switch picks the kind of change: select <strong>Background Workers</strong>
+          on Level 2 and each intent lights a different set, as the key under the map explains.
         </p>
       </TuxCard>
 

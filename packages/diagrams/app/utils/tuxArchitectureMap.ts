@@ -1610,7 +1610,10 @@ export interface TuxMapNormalizedModel extends TuxMapLevelModel {
 }
 
 /**
- * How strongly a link couples its two ends; decides which links each blast intent follows.
+ * How strongly a link couples its two ends; decides which links each blast intent follows. Left out, it is
+ * read from `kind`. General walks every coupling; Body patch skips `type-only` and `build-exec`; Refactor and
+ * Cut walk `type-only` and stop at `build-exec`; Supply chain skips `type-only` and `prose`. Every intent other
+ * than General stops one step out at `artifact-stamp` and `verification` (`TUX_MAP_BLAST_INTENTS`).
  * @public
  */
 export type TuxMapLinkCoupling =
@@ -1634,7 +1637,18 @@ export type TuxMapLinkPhase =
   | "doc-only";
 
 /**
- * The kind of change a blast radius is computed for.
+ * The kind of change a blast radius is computed for; it decides which links the walk follows.
+ * `TUX_MAP_BLAST_INTENTS` defines each one: the change it models and the links it follows, stops at and skips.
+ * - `"default"` (General): any change. Follows every link.
+ * - `"patch"` (Body patch): an edit inside a body that keeps its signature, types and build. Follows calls
+ *   and contracts; skips type-only imports, build-time steps and page links.
+ * - `"refactor"` (Refactor): a change to a signature or a type callers see. Also follows type-only imports.
+ * - `"cut"` (Cut / remove): removing it. The same walk as Refactor; the result also names what could go with it.
+ * - `"supply-chain"` (Supply chain): a new version of a dependency, image or package. Follows calls and
+ *   contracts; skips type-only imports, docs and page links.
+ *
+ * Under every intent, a link marked `stop` is lit and not walked past (Refactor and Cut still walk a type-only
+ * one), and a doc that mentions it is lit one step from the change only.
  * @public
  */
 export type TuxMapBlastIntent =
@@ -1660,7 +1674,7 @@ export interface TuxMapLink {
   at?: string;
   /** All 1-based line numbers in `from` where this link was read, sorted ascending */
   sites?: number[];
-  /** Semantic coupling strength for intent-aware blast radius (`patch | refactor | cut | supply-chain`) */
+  /** How strongly the link couples its ends: which blast intents follow it, stop at it or skip it (`TuxMapLinkCoupling`) */
   coupling?: TuxMapLinkCoupling;
   /** Execution or shipping phase of the dependency */
   phase?: TuxMapLinkPhase;
@@ -3414,16 +3428,101 @@ export function elementTypeLabel(
 }
 
 /**
+ * A class of link as the blast intents tell them apart: the link's `TuxMapLinkCoupling`, except that a
+ * `links` link (a page linking to another) is a class of its own, `"page-link"`.
+ * @public
+ */
+export type TuxMapBlastLinkClass = TuxMapLinkCoupling | "page-link";
+
+/**
+ * One blast intent, defined: the change it models and how its walk treats each class of link.
+ * `follows` is walked through and past, `stops` is lit one step out and not walked past, `skips` is never
+ * lit; every class is in one of the three. `classifyBlastLink` applies it.
+ * @public
+ */
+export interface TuxMapBlastIntentDefinition {
+  id: TuxMapBlastIntent;
+  /** The intent's name in the UI, e.g. "Body patch" */
+  label: string;
+  /** The change it models, in one sentence */
+  description: string;
+  follows: readonly TuxMapBlastLinkClass[];
+  stops: readonly TuxMapBlastLinkClass[];
+  skips: readonly TuxMapBlastLinkClass[];
+}
+
+/**
+ * Each link class in words, as the blast key names them.
+ * @public
+ */
+export const TUX_MAP_BLAST_LINK_CLASS_LABELS: Readonly<Record<TuxMapBlastLinkClass, string>> = {
+  contract: "contracts (routes, code imports)",
+  runtime: "calls and uses",
+  "type-only": "type-only imports",
+  "artifact-stamp": "build stamps",
+  "build-exec": "build-time steps",
+  verification: "tests and checks",
+  prose: "docs that mention it",
+  "page-link": "page links",
+};
+
+const REFACTOR_WALK = {
+  follows: ["contract", "runtime", "type-only", "page-link"],
+  stops: ["artifact-stamp", "build-exec", "verification", "prose"],
+  skips: [],
+} as const;
+
+/**
+ * The blast intents, in the order a picker lists them: the one definition of each that the map's UI,
+ * hosts and producers read (`tti/tti-ux#259`). See `TuxMapBlastIntent`.
+ * @public
+ */
+export const TUX_MAP_BLAST_INTENTS: readonly TuxMapBlastIntentDefinition[] = [
+  {
+    id: "default",
+    label: "General",
+    description: "Any change: everything that depends on it, through every link.",
+    follows: ["contract", "runtime", "type-only", "artifact-stamp", "build-exec", "verification", "page-link"],
+    stops: ["prose"],
+    skips: [],
+  },
+  {
+    id: "patch",
+    label: "Body patch",
+    description: "An edit inside a body that keeps its signature, types and build: what calls or routes to it.",
+    follows: ["contract", "runtime"],
+    stops: ["artifact-stamp", "verification", "prose"],
+    skips: ["type-only", "build-exec", "page-link"],
+  },
+  {
+    id: "refactor",
+    label: "Refactor",
+    description: "A change to a signature or type that callers see: what calls it or imports its types.",
+    ...REFACTOR_WALK,
+  },
+  {
+    id: "cut",
+    label: "Cut / remove",
+    description: "Removing it: the cards Refactor lights, and the result also names what could go with it.",
+    ...REFACTOR_WALK,
+  },
+  {
+    id: "supply-chain",
+    label: "Supply chain",
+    description: "A new version of a dependency, image or package: what runs, builds or ships it.",
+    follows: ["contract", "runtime"],
+    stops: ["artifact-stamp", "build-exec", "verification"],
+    skips: ["type-only", "prose", "page-link"],
+  },
+];
+
+/**
  * Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`).
  * @public
  */
-export const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent> = new Set([
-  "default",
-  "patch",
-  "refactor",
-  "cut",
-  "supply-chain",
-]);
+export const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent> = new Set(
+  TUX_MAP_BLAST_INTENTS.map((d) => d.id),
+);
 
 const VALID_LINK_COUPLINGS: ReadonlySet<string> = new Set([
   "contract",

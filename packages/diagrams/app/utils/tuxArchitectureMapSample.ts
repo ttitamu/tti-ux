@@ -11,6 +11,13 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
   generatedAt: "2026-10-28T10:30:00Z",
   issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
   sourceBaseUrl: "https://github.com/ttitamu/tti-ux/blob/main",
+  // Three code links into Background Workers, one per coupling the blast intents tell apart (#259): select
+  // it, turn on Blast radius and each intent lights a different set (General walks on past the Web Portal).
+  links: [
+    { from: "c-web", to: "c-workers", kind: "stamps", label: "Stamps the worker build number on its status page" },
+    { from: "c-scheduler", to: "c-workers", kind: "runs", stop: true, coupling: "build-exec", label: "Builds the worker image before each deploy" },
+    { from: "c-observability", to: "c-workers", kind: "imports", coupling: "type-only", label: "Imports the worker's metric types" },
+  ],
   level1: {
     title: "Level 1 · Ecosystem & People in Context",
     summary: "The platform, the people who use and operate it, and the external services it connects with.",

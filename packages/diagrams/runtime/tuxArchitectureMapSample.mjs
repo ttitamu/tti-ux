@@ -1,11 +1,16 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMapSample.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 827472a982e5569b8e5c983ea51ff5dbcb58c4574b877f08ac8ee1318edeea76
+// SOURCE-SHA256: 520918c53a806d7be0ea5a41c39bfded0aaaf917fd5b9f4137efab3fab9c9ec8
 export const DEFAULT_TTI_LEVEL_MODEL = {
     schema: "tux-map/1",
     generatedAt: "2026-10-28T10:30:00Z",
     issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
     sourceBaseUrl: "https://github.com/ttitamu/tti-ux/blob/main",
+    links: [
+        { from: "c-web", to: "c-workers", kind: "stamps", label: "Stamps the worker build number on its status page" },
+        { from: "c-scheduler", to: "c-workers", kind: "runs", stop: true, coupling: "build-exec", label: "Builds the worker image before each deploy" },
+        { from: "c-observability", to: "c-workers", kind: "imports", coupling: "type-only", label: "Imports the worker's metric types" },
+    ],
     level1: {
         title: "Level 1 · Ecosystem & People in Context",
         summary: "The platform, the people who use and operate it, and the external services it connects with.",

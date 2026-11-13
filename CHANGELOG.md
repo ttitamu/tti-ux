@@ -18,6 +18,19 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: the blast radius intent says what it does, and switching it shows (#259)
+
+- **Why it looked dead.** The intent select recomputed the radius on every change, but on the docs sample every link the walk could take is a relationship bridged from C4 `rels` or Level 4 `links`, and those are all `coupling: "runtime"`, which every intent follows. So every intent lit the same cards for every selection, and nothing said what an intent was. Cut / remove also lights the same cards as Refactor on any model: the walks are the same, and only the result's `coCutCandidates` differ.
+- **Each intent is defined once**, in the new public `TUX_MAP_BLAST_INTENTS` (id, label, the change it models, and the link classes its walk `follows`, `stops` at and `skips`) with `TUX_MAP_BLAST_LINK_CLASS_LABELS` and the type `TuxMapBlastLinkClass`. `TUX_MAP_VALID_BLAST_INTENTS` is built from it. The same definitions are in the `TuxMapBlastIntent` and `TuxMapLinkCoupling` doc comments, the schema's description of `coupling`, and a "Blast intents" table in the diagrams README. `classifyBlastLink` is unchanged.
+- **In the map:** each option carries its definition as a `title`, the select's `title` is the chosen one's, and the select is `aria-describedby` a line under the key that names the intent, the change it models and what it follows, stops at and skips. With an intent other than General, the line says how many cards it lights against General's, or "Same cards as General on this view" when it changes nothing there.
+- **The docs sample** gains three code `links` into Background Workers (a build stamp, a build-time step and a type-only import), so selecting it with Blast radius on lights a different set under General, Body patch, Refactor and Supply chain.
+- The consumer payload budget goes from 102,000 B to 103,000 B: the definitions and the key line add about 880 B gzip (102,200 B on macOS).
+- Tests: `packages/diagrams/tests/map-blast-intents.test.ts` (every intent defined, every link class in one list, each definition against `classifyBlastLink`, the sample's four sets) and `tests/tux-architecture-map-blast-intent.nuxt.test.ts` (mounted: the options and the key, the lit cards per intent, the "same as General" line).
+
+**To check when upgrading:**
+- A host that renders `DEFAULT_TTI_LEVEL_MODEL` now has a model with code `links`: relationships between pairs those links cover are no longer bridged, and `queryArchitectureImpact()` takes no coarse parent step on it (none of the sample's other pairs is affected). A test that relied on the sample being C4-only can drop its `links`.
+- With Blast radius on, the key has one more line (`[data-blast-intent-key]`); a snapshot of the key, or of the `title` and `aria-label` of `.tux-map__intent-select`, should be checked.
+
 ### Changed — Architecture map: the canvas keeps its size from level to level (#261)
 
 - **A level with fewer cards no longer makes the map shorter.** Under `height="auto"` the viewport was as tall as the level on screen, fitted to the width (440px at least), so a step into a smaller level shortened it and moved the page under it. It is now as tall as the tallest level shown at the map's width, 440px at least: the first level sets it, a taller one raises it (a shorter one would be cut off), none lowers it, and a change of the map's width starts again from the level on screen. On the docs page at 1504 px the viewport stays 692 px at every level, where it went 692, 563, 450 and 476.
