@@ -19,7 +19,7 @@ titles, status badges, form fields) is illustrative — intentionally spread
 across transportation-research domains so no single consuming app's identity
 leaks into the design system.
 
-**Current release:** **v3.13.0, beta** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin an
+**Current release:** **v3.14.0, beta** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin an
 exact version · **100% W3C WCAG 2.2 Level AAA certified** · color contrast
 verified at AAA ($\ge 7.0:1$) across all themes · aligned with the official TTI Communications identity
 (5-band research spectrum, warm eggshell wash `#F9F9F7`, Warm Gold keylines `#CFA935`, rectangular Kadence geometry).

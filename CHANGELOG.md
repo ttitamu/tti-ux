@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+## [3.14.0] — 2026-11-13
+
+The accessibility icon becomes the universal-access figure, and the architecture map gets a pass on how it reads at a glance. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.13.0:
+
+- **The accessibility icon** (#253) is TUX's own `tux:accessibility`, filled (`tux:accessibility-active`) in the brand colour while high contrast is on; `TuxUtilityCluster`'s high-contrast button no longer fills its background. The layer registers the `tux` icon collection.
+- **Map cards keep their planned size** (#257, #258): no growth on hover or selection, titles on one line, the type line at the body's size, and a status line that says what it counts ("3 of 4 instances running"). Tests or stylesheets that relied on the hover un-clamp should be checked.
+- **The map area keeps its height between levels** (#261) under `height="auto"`, and a smaller level is centred (the stage's `top`); a fixed `height` is unchanged. A faded "LEVEL n" sits in the canvas's bottom-right corner (#260).
+- **The blast intents** (#259) are defined in `TUX_MAP_BLAST_INTENTS`, said on hover and in a line under the key.
+- **The trailing cursor** (#256) lies behind the cards in the brand colour (gold in the dark themes) and follows a little faster.
+
 ### Fixed — Architecture map: the blast radius intent says what it does, and switching it shows (#259)
 
 - **Why it looked dead.** The intent select recomputed the radius on every change, but on the docs sample every link the walk could take is a relationship bridged from C4 `rels` or Level 4 `links`, and those are all `coupling: "runtime"`, which every intent follows. So every intent lit the same cards for every selection, and nothing said what an intent was. Cut / remove also lights the same cards as Refactor on any model: the walks are the same, and only the result's `coCutCandidates` differ.
