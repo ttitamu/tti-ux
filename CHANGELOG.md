@@ -18,6 +18,28 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: a card stays the box its ring, ports and wires are drawn to (#257)
+
+- **A card no longer grows when it is hovered or chosen.** `.tux-map__el:hover` and `.tux-map__el[aria-pressed="true"]` set `height: auto !important` (and a 128px or 82px `min-height` on hover) and let the type line, the description and the chips out of their clamps, so a card with a long description grew up to 44px past the height the layout planned, and a short person or outside card shrank or grew too, while its selection ring, its hover frame and ports and the ends of its wires stayed at the planned size. In the docs sample every one of the 30 cards measured disagreed in at least one state; none does now. A card is the planned height at rest, hovered and chosen; what does not fit is in the row's tooltip and the details panel, and the list view shows every row in full.
+- **The layout's planned heights follow the rows the card now draws.** `outsideCardHeight()` takes only the rows (`{ owner, type }`), since the title is one line whatever its length; `cardDescriptionLines()` no longer takes `titleLines`, and counts the 12px type line and the body's hairline. `cardTitleLines()` and `estimateCardTitleWidth()` are gone (all four are internal).
+- Tests: `tests/tux-architecture-map-card-glance.nuxt.test.ts` (no card rule sets a height, every row that could grow is clamped, and a long-title, long-description card has its planned box, its ring and ports 6px outside it and its wires ending on its edges, mounted); `packages/diagrams/tests/map-card-text.test.ts` and `tests/tux-architecture-map-layout.nuxt.test.ts` follow the one-line title and the clamps that stay on.
+
+**To check when upgrading:** a host stylesheet or a test that relied on a hovered or chosen card showing its whole description, type line or chips. They are in the tooltips, the details panel and the list view.
+
+### Changed — Architecture map: a card says what it is at a glance (#258)
+
+- **The title is one line**, cut with an ellipsis. The full name is the title's tooltip, the start of the card's accessible name and the details panel's heading. A long title no longer takes a second line from the description. A path title no longer breaks after its slashes (the `<wbr>`s are gone).
+- **The type line (kind · tech) is 12px, the size of the body text**, not 11px, in `--text-muted` (7:1 or more in every TUX theme).
+- **A hairline in `--surface-border` and 4px of space set the description apart** from the title, type and host rows (on a person card, its own text colour at 40%). With every row present (title, type, host, status) a 128px card has room for one line of description, where it had two beside a one-line title; without a host it has two.
+- **The status line names what it counts, and every state says what it means.** "10/10 running" reads "10 of 10 instances running"; the dot is amber when some instances are not running and red when none are (it took only the `state` before). The words for each `live.state`: `running` and `active` "Running", `present` "Installed", `success` "Last run succeeded" (was "Last run fine"), `inactive` "Installed, not running" (was "Off"), `declared-not-installed` "Declared, not installed" (was "Not installed"), `failed` "Failed: stopped with an error" (was "Failed"), `unknown` "State not reported" (was "State unknown"); a `last_run` reads "Last run succeeded", "Last run failed" or "Last run: …" with the producer's word.
+- **`TuxMapElementLiveInfo` defines its fields**: what `state`, `total`, `running` and `last_run` mean, in the type's doc comments, the JSON Schema's descriptions and a new README section, "What a card shows, and what its status line means". `total` is how many instances of the element are meant to run (replicas, processes, jobs, running parts), `running` how many run now.
+- **The card's accessible name and the list view carry the status line** in the card's words, and the panel's "State" says the same.
+- Tests: `tests/tux-architecture-map-card-glance.nuxt.test.ts` (each state's words and dot on the card, in its accessible name, in the list view and the panel; the one-line title and its tooltip; the type line's size; the hairline). `schema/tux-map-1.schema.json`, the runtime and the API reports are regenerated.
+
+**To check when upgrading:**
+- A test or a screen reader script that reads a card's status line ("2/2 running", "Off", "Last run fine", "Not installed", "State unknown") or its accessible name, which now has the status line after the type and host and before the chips.
+- A layout that counted on a card's second title line or its second description line beside a host row.
+
 ## [3.13.0] — 2026-11-13
 
 The architecture map's 3.13 fixes, its 3.14 enhancements and the first phase of its performance work (#221), in one release. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.12.0:

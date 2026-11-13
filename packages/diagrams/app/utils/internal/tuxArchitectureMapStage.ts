@@ -250,59 +250,26 @@ export function wirePairKey(from: string, to: string): string {
 // ----------------------------------------------------------------------------
 
 /**
- * Advance widths of the printable ASCII characters (space to `~`) in the title face, Work Sans
- * Bold, read from the font in a browser. One character per character: its code less 8 is the
- * width in hundredths of an em (`A` is 68, `i` is 29, `W` is 100).
+ * A card is always the height the stage gives it (#257): one that grew past it when hovered or
+ * chosen left its ring, its ports and the ends of its wires at the planned size. Its title is one
+ * line, cut with an ellipsis (#258), the full name in the card's accessible name, its tooltip and the
+ * panel; its description gets the whole lines left, the rest in the tooltip and the panel.
  */
-const TITLE_CHAR_WIDTHS =
-  "%&5MHfI!..CD%=%)H3DCIBFEGF&&DDDDeLLLPGEPR(FMDcRRKRMHIOLlJHG/)/E>:DGAGB0@F%%F)fFDGG3=0F@bC@<2(2D";
+const TITLE_ROW = 17; // the icon's height: a 14px or 13px title line is 16.8 or 15.6
+const TYPE_ROW = 15.6; // the type line, 12px at 1.3: the body's size, not smaller (#258)
 
 /**
- * The width of a card title in px, estimated: no font is measured, so the stage is the same on a
- * server, in a test and in a browser. A character outside ASCII counts as a wide letter, and the
- * sum is taken 4% wide, so an estimate errs wide and a title is given a second line sooner than
- * it needs one: the cost of that is a few pixels of room, the cost of the other a cut row.
- * @internal
- */
-export function estimateCardTitleWidth(text: string, fontPx: number): number {
-  let em = 0;
-  for (const ch of text) {
-    const code = ch.codePointAt(0)!;
-    em += code >= 32 && code < 127 ? TITLE_CHAR_WIDTHS.charCodeAt(code - 32) - 8 : 93;
-  }
-  return (em / 100) * fontPx * 1.04;
-}
-
-/** Text widths inside a 212px card: the card less its padding, border, icon and the icon's gap. */
-const MINI_TITLE_WIDTH = 168;
-const CARD_TITLE_WIDTH = 165;
-/** A card with a `+` badge keeps 24px clear of it. */
-const ZOOM_BADGE_CLEARANCE = 24;
-
-/**
- * The lines an inner card's title takes: 1 or 2 (the stylesheet clamps a title at two).
- * @internal
- */
-export function cardTitleLines(name: string, zoomable: boolean): 1 | 2 {
-  const width = CARD_TITLE_WIDTH - (zoomable ? ZOOM_BADGE_CLEARANCE : 0);
-  return estimateCardTitleWidth(name, 14) > width ? 2 : 1;
-}
-
-/**
- * The height of an outside card, from the rows it shows: its title on one line or two, the line
- * that says where it lives, its type and its chips. Every outside card was 60px, which holds a
- * one-line title and one more row: the chips of every card were cut by its bottom edge, and a card
- * with a two-line title or an owner line lost them altogether.
+ * The height of an outside card, from the rows it shows: its title, the line that says where it
+ * lives, its type and its chips. Every outside card was 60px, which holds a title and one more row:
+ * the chips of every card were cut by its bottom edge, and a card with an owner line lost them.
  *
- * Whether the card will carry a `+` is not known here, so the title is measured against the
- * narrower width.
+ * The name is not measured: the title is one line whatever its length (#258).
  * @internal
  */
-export function outsideCardHeight(name: string, rows: { owner?: boolean; type?: boolean } = {}): number {
-  const twoLines = estimateCardTitleWidth(name, 13) > MINI_TITLE_WIDTH - ZOOM_BADGE_CLEARANCE;
-  // padding and border 16.4, a title line 17 (the icon's height), the chips 19, a 1.6 gap per row
-  let h = 16.4 + (twoLines ? 31.2 : 17) + 1.6 + 19;
-  if (rows.type !== false) h += 14.3 + 1.6;
+export function outsideCardHeight(rows: { owner?: boolean; type?: boolean } = {}): number {
+  // padding and border 16.4, the title line, the chips 19, a 1.6 gap per row
+  let h = 16.4 + TITLE_ROW + 1.6 + 19;
+  if (rows.type !== false) h += TYPE_ROW + 1.6;
   if (rows.owner) h += 13.2 + 1.6;
   return Math.ceil(h);
 }
@@ -311,16 +278,19 @@ export function outsideCardHeight(name: string, rows: { owner?: boolean; type?: 
  * How many lines of its description an inner card of height `height` has room for, 0 to 2, after
  * the rows that are always shown in full. The description was the row that gave way, by however
  * many pixels were missing, so its last line was cut through the letters.
+ *
+ * The description is the card's body: a hairline over it, 1px and 4px of space, sets it apart from
+ * the title, type and host rows above it (#258).
  * @internal
  */
 export function cardDescriptionLines(
   height: number,
-  rows: { titleLines: 1 | 2; type: boolean; runsOn: boolean; footer: boolean },
+  rows: { type: boolean; runsOn: boolean; footer: boolean },
 ): 0 | 1 | 2 {
   const GAP = 2.56;
-  // padding and border 20.4; a title line is 17 (the icon's height), two are 33.6
-  let used = 20.4 + (rows.titleLines === 2 ? 33.6 : 17);
-  if (rows.type) used += 14.3 + GAP;
+  // padding and border 20.4, the title line, the hairline and its space 5
+  let used = 20.4 + TITLE_ROW + 5;
+  if (rows.type) used += TYPE_ROW + GAP;
   if (rows.runsOn) used += 13 + GAP;
   if (rows.footer) used += 19.2 + GAP;
   const lines = Math.floor((height - used - GAP) / 16.2);
@@ -1074,9 +1044,7 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
     const cards = ids.map((id) => edgeCard(id));
     const heights = cards.map((card, i) =>
       card
-        ? outsideCardHeight(middleEllipsizeFolderName(card.name, card.kind, card.id, 24), {
-            owner: Boolean(outsideMetaById[ids[i]!]?.ownerLabel),
-          })
+        ? outsideCardHeight({ owner: Boolean(outsideMetaById[ids[i]!]?.ownerLabel) })
         : MH,
     );
     const offsets: number[] = [];
