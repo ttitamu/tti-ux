@@ -168,7 +168,7 @@ export interface TuxArchitectureMapProps {
   caption?: string;
   /** Accessible label for the diagram region */
   ariaLabel?: string;
-  /** CSS height of the diagram's viewport (`"auto"` by default: the viewport is as tall as the fitted diagram, 440px at least). A fixed height scrolls a taller diagram */
+  /** CSS height of the diagram's viewport (`"auto"` by default: as tall as the tallest level shown at this width when fitted, 440px at least; it does not shrink on a change of level). A fixed height scrolls a taller diagram; a shorter level is centred in either */
   height?: string;
   /**
    * Legacy level-of-detail switch. A change after mount moves the map to Level 1 (`"executive"`),
@@ -3451,11 +3451,30 @@ function afterMagnify() {
   });
 }
 
+// The viewport keeps its size from level to level (#261). A level's own fitted height decided it,
+// so a level with fewer cards made the map shorter and moved the page under it. Without a host
+// `height` the viewport is as tall as the tallest level shown at this width, 440px at least: the
+// first level sets it, a taller one raises it (a shorter one would clip it), none lowers it, and a
+// change of the map's width starts again from the level on screen. A shorter level is centred in it.
+const VIEWPORT_MIN_HEIGHT = 440;
+const levelFitHeight = computed<number>(() =>
+  Math.max(VIEWPORT_MIN_HEIGHT, Math.ceil(stageData.value.height * fitScale.value)),
+);
+const heldFitHeight = ref<number>(0);
+let heldForWidth = -1;
+watch(
+  [levelFitHeight, containerWidth],
+  ([h, w]) => {
+    if (w !== heldForWidth || h > heldFitHeight.value) heldFitHeight.value = h;
+    heldForWidth = w;
+  },
+  { immediate: true, flush: "sync" },
+);
 const computedViewportHeight = computed<string>(() => {
   if (props.height && props.height !== "auto") {
     return props.height;
   }
-  const fitH = Math.max(440, Math.ceil(stageData.value.height * fitScale.value));
+  const fitH = heldFitHeight.value;
   if (!isMagnified.value) return `${fitH}px`;
   // magnified: tall enough to read, never taller than most of the screen; the rest scrolls.
   // The 2px are the viewport's border: without them a viewport as tall as the diagram still
@@ -3472,6 +3491,24 @@ const magnifiedShowsFullHeight = computed<boolean>(
     viewportOuterHeight.value > 0 &&
     viewportOuterHeight.value >= Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER - 0.5,
 );
+
+/**
+ * How far down the stage is drawn so that a level shorter than the viewport sits in its middle
+ * (#261), in px. Fitted and without a host `height` the viewport's height is known here; otherwise
+ * it is the one last measured. Only the stage's `top` moves: its transform, and the travels that
+ * animate it, keep their own origin.
+ */
+const viewportInnerHeight = computed<number>(() => {
+  const outer =
+    !isMagnified.value && (!props.height || props.height === "auto")
+      ? heldFitHeight.value
+      : viewportOuterHeight.value;
+  return Math.max(0, outer - VIEWPORT_BORDER);
+});
+const stageOffsetY = computed<number>(() => {
+  const free = viewportInnerHeight.value - stageData.value.height * stageScale.value;
+  return free > 1 ? Math.floor(free / 2) : 0;
+});
 
 // The More menu of a narrow map opens under its button. Where the button is near the right
 // edge the menu ran past the map and was cut by the window or the frame around it (#205)
@@ -4076,9 +4113,11 @@ function goToLevel(
   const prevRect = inward
     ? prevCard
     : stageData.value.bounds[0] ?? { x: 24, y: 24, w: stageData.value.width - 48, h: stageData.value.height - 48 };
+  // `y` is from the viewport's top (#261): the new level may be centred lower or higher
+  const prevOffsetY = stageOffsetY.value;
   const travelFrom =
     opts.fromCardId !== undefined && prevRect
-      ? { x: prevPanX + prevRect.x * prevScale, y: prevRect.y * prevScale, w: prevRect.w * prevScale, h: prevRect.h * prevScale }
+      ? { x: prevPanX + prevRect.x * prevScale, y: prevOffsetY + prevRect.y * prevScale, w: prevRect.w * prevScale, h: prevRect.h * prevScale }
       : null;
 
   currentLevel.value = nextLevel;
@@ -4210,7 +4249,10 @@ function goToLevel(
       : resolvedTargetId
         ? data.rects[resolvedTargetId]
         : undefined;
-    const start = travelFrom && inner ? flipStart(inner, travelFrom, pan, scale) : null;
+    const start =
+      travelFrom && inner
+        ? flipStart(inner, { ...travelFrom, y: travelFrom.y - stageOffsetY.value }, pan, scale)
+        : null;
     const ms = start ? travelDuration(start.px) : 0;
     const easing = TRAVEL_EASING;
     landTravel();
@@ -5751,8 +5793,8 @@ const inspectedWireDetail = computed(() => {
   let popTop = 24;
   if (lbl) {
     const anchorX = outlineLeft + panX.value + (lbl.x + lbl.w / 2) * scale - viewportScrollLeft.value;
-    const anchorBottomY = (lbl.y + lbl.h) * scale - viewportScrollTop.value;
-    const anchorTopY = lbl.y * scale - viewportScrollTop.value;
+    const anchorBottomY = stageOffsetY.value + (lbl.y + lbl.h) * scale - viewportScrollTop.value;
+    const anchorTopY = stageOffsetY.value + lbl.y * scale - viewportScrollTop.value;
     popLeft = Math.max(
       outlineLeft + 12,
       Math.min(outlineLeft + Math.max(12, vpW - 332), Math.round(anchorX - 160)),
@@ -6225,7 +6267,7 @@ function getStageCoordsFromClient(clientX: number, clientY: number): { x: number
   const s = stageScale.value || 1;
   return {
     x: Math.round((clientX - ox! - panX.value) / s),
-    y: Math.round((clientY - oy!) / s),
+    y: Math.round((clientY - oy! - stageOffsetY.value) / s),
   };
 }
 
@@ -6349,7 +6391,11 @@ const isDraggingStage = ref<boolean>(false);
 // The trailing cursor (#208): the disc is the visible form of `proximityCard`
 const mapCursor = useTuxMapCursor({
   on: () => props.cursor && activeTool.value === "select" && !wheelVeilShown.value,
-  card: proximityCard,
+  // a level centred lower in the viewport (#261) is drawn that much further down
+  card: computed(() => {
+    const c = proximityCard.value;
+    return c && stageOffsetY.value ? { ...c, y: c.y + stageOffsetY.value / (stageScale.value || 1) } : c;
+  }),
   scale: stageScale,
   pan: panX,
   drag: isDraggingStage,
@@ -7368,6 +7414,14 @@ function buildSourceHref(src?: {
         >
           <span class="tux-map__wheel-veil-label">Click to explore</span>
         </button>
+        <!-- Level mark (#260): decoration, under the stage -->
+        <div
+          class="tux-map__level-mark"
+          aria-hidden="true"
+          :style="{ height: `${viewportInnerHeight}px`, marginBottom: `-${viewportInnerHeight}px` }"
+        >
+          <span class="tux-map__level-mark-text">LEVEL {{ currentLevel }}</span>
+        </div>
         <div
           v-if="isMagnified"
           class="tux-map__sizer"
@@ -7389,6 +7443,7 @@ function buildSourceHref(src?: {
           :style="{
             width: `${stageData.width}px`,
             height: `${stageData.height}px`,
+            top: `${stageOffsetY}px`,
             transform: `translate3d(${panX}px, 0px, 0) scale(${stageScale})`,
           }"
           @pointerover="onStagePointerOver"
@@ -7414,13 +7469,14 @@ function buildSourceHref(src?: {
           </div>
 
           <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only.
-               In the stage, after the boundaries and under everything else (#256); the stage's scale
-               and pan are undone on it, so it is placed in the viewport's content px -->
+               In the stage, after the boundaries and under everything else (#256); the stage's scale,
+               pan and top offset (a centred level, #261) are undone on it, so it is placed in the
+               viewport's content px -->
           <div
             v-if="cursorOn"
             ref="cursorRef"
             class="tux-map__cursor"
-            :style="{ transform: `scale(${1 / stageScale}) translateX(${-panX}px)` }"
+            :style="{ transform: `scale(${1 / stageScale}) translateY(${-stageOffsetY}px) translateX(${-panX}px)` }"
             aria-hidden="true"
           >
             <i /><i />
@@ -10020,6 +10076,37 @@ function buildSourceHref(src?: {
   pointer-events: none;
 }
 
+/* The level in the canvas's bottom-right corner (#260), in the type of the faint "TUX" on the
+   home page. Decoration (aria-hidden): the stepper names the level and the change is announced.
+   It comes before the stage, so every card, wire and label is drawn over it. The box is as tall
+   as the viewport, takes no room in it (its height comes off its margin) and sticks to the
+   scrolled box's top-left, so the word stays put when a magnified diagram scrolls. Text-primary
+   at 7% is faint on the sunken surface of every theme; under forced colours it would be drawn
+   solid, so it goes */
+.tux-map__level-mark {
+  position: sticky;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tux-map__level-mark-text {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.6rem;
+  font-family: var(--font-bold);
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(2.25rem, 7cqi, 4.5rem);
+  letter-spacing: -0.05em;
+  line-height: 0.8;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+
 .tux-map__viewport--has-proximity {
   cursor: var(--tux-cursor-card);
 }
@@ -12070,6 +12157,11 @@ function buildSourceHref(src?: {
 
 /* Windows High Contrast / Forced Colors (#117 & #123): distinct dash patterns & system strokes */
 @media (forced-colors: active) {
+  /* the level mark would be drawn solid (#260) */
+  .tux-map__level-mark {
+    display: none;
+  }
+
   .tux-map__wire {
     stroke: CanvasText;
     stroke-width: 1.5;

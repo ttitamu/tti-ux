@@ -137,6 +137,9 @@ const onScreen = (r: Rect, t: { x: number; y: number; k: number }): Rect => ({
   h: r.h * t.k,
 });
 
+/** A stage transform as drawn: the stage's own top is where a shorter level is centred (#261). */
+const drawn = (t: { x: number; y: number; k: number }, top: number) => ({ ...t, y: t.y + top });
+
 const centre = (r: Rect) => [r.x + r.w / 2, r.y + r.h / 2] as const;
 
 const stageCalls = (calls: Recorded[], stage: Element) => calls.filter((c) => c.el === stage);
@@ -147,7 +150,7 @@ const key = (el: Element, k: string) =>
 describe("TuxArchitectureMap: a zoom into a card grows the level out of it (#212)", () => {
   it("starts with the level's frame inside the card's rectangle, and ends where the level is", async () => {
     const { state, stage, pill } = await mountMap();
-    const card = onScreen(state.stageData.rects["c-api"], { x: state.panX, y: 0, k: state.stageScale });
+    const card = onScreen(state.stageData.rects["c-api"], { x: state.panX, y: state.stageOffsetY, k: state.stageScale });
     const calls = recordAnimations();
     state.zoomIntoElement("c-api");
     await settle();
@@ -156,7 +159,7 @@ describe("TuxArchitectureMap: a zoom into a card grows the level out of it (#212
     const [travel, ...rest] = stageCalls(calls, stage);
     expect(rest).toEqual([]);
     const frame = state.stageData.bounds[0] as Rect;
-    const from = onScreen(frame, transformOf(travel!.frames[0]!));
+    const from = onScreen(frame, drawn(transformOf(travel!.frames[0]!), state.stageOffsetY));
     // inside the card, centred on it, and as large as fits: one axis touches
     expect(centre(from)[0]).toBeCloseTo(centre(card)[0], 0);
     expect(centre(from)[1]).toBeCloseTo(centre(card)[1], 0);
@@ -170,7 +173,7 @@ describe("TuxArchitectureMap: a zoom into a card grows the level out of it (#212
 
     // one curve, and a duration by how far the frame's furthest corner goes
     expect(travel!.options.easing).toBe(TRAVEL_EASING);
-    const to = onScreen(frame, { x: state.panX, y: 0, k: state.stageScale });
+    const to = onScreen(frame, { x: state.panX, y: state.stageOffsetY, k: state.stageScale });
     const far = Math.max(
       ...[0, 1].flatMap((i) =>
         [0, 1].map((j) => Math.hypot(to.x + i * to.w - (from.x + i * from.w), to.y + j * to.h - (from.y + j * from.h))),
@@ -206,7 +209,7 @@ describe("TuxArchitectureMap: a zoom into a card grows the level out of it (#212
 
   it("shrinks the level back into the card it came from on the way out", async () => {
     const { state, stage, pill } = await mountMap({ initialLevel: 3, initialFocus: "c-api" });
-    const frame = onScreen(state.stageData.bounds[0], { x: state.panX, y: 0, k: state.stageScale });
+    const frame = onScreen(state.stageData.bounds[0], { x: state.panX, y: state.stageOffsetY, k: state.stageScale });
     const calls = recordAnimations();
     state.zoomOutLevel();
     await settle();
@@ -216,7 +219,7 @@ describe("TuxArchitectureMap: a zoom into a card grows the level out of it (#212
     expect(calls.map((c) => c.el)).toEqual([stage]);
     const travel = calls[0]!;
     const card = state.stageData.rects["c-api"] as Rect;
-    const from = onScreen(card, transformOf(travel.frames[0]!));
+    const from = onScreen(card, drawn(transformOf(travel.frames[0]!), state.stageOffsetY));
     expect(centre(from)[0]).toBeCloseTo(centre(frame)[0], 0);
     expect(centre(from)[1]).toBeCloseTo(centre(frame)[1], 0);
     expect(from.w).toBeLessThanOrEqual(frame.w + 0.5);

@@ -18,6 +18,22 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: the canvas keeps its size from level to level (#261)
+
+- **A level with fewer cards no longer makes the map shorter.** Under `height="auto"` the viewport was as tall as the level on screen, fitted to the width (440px at least), so a step into a smaller level shortened it and moved the page under it. It is now as tall as the tallest level shown at the map's width, 440px at least: the first level sets it, a taller one raises it (a shorter one would be cut off), none lowers it, and a change of the map's width starts again from the level on screen. On the docs page at 1504 px the viewport stays 692 px at every level, where it went 692, 563, 450 and 476.
+- **A level shorter than the viewport is centred in it**, under `"auto"` and under a host's fixed `height`, which is kept as it was. The stage's `top` carries the offset, so its transform, the travels that animate it, the pointer, the trailing cursor and the wire popover all read the same place. Magnified, the viewport asks for the held height at least and the diagram's own height up to 75vh, as before.
+- Tests: `tests/tux-architecture-map-level-mark.nuxt.test.ts` (mounted: the height from a large level to a small one and back, the centring, the pointer on a centred level, a change of width, a host `height`, magnified). `tests/tux-architecture-map-travel.nuxt.test.ts` and `tests/tux-architecture-map-cursor.nuxt.test.ts` now place the stage at its `top` when they turn stage units into viewport pixels.
+
+**To check when upgrading:** a page laid out around the map's old height (a level shorter than the first one used to shrink the map) gets a taller map on those levels. A host test or script that reads a card's place in the viewport from the stage's rectangles adds the stage's `top`. A host that wants the old top-aligned look on a short level passes a `height` that fits it.
+
+### Added — Architecture map: the level, faint in the canvas's corner (#260)
+
+- **"LEVEL n" in the bottom-right corner of the canvas**, in the type of the faint "TUX" on the TUX home page (`--font-bold`, 900, italic, tight tracking), at 7% of `--text-primary`, so it is quiet in the light, dark, soft dark and high-contrast themes; under forced colours it is not drawn. It follows every change of level.
+- **Decoration:** `aria-hidden="true"`, no pointer events, nothing in it to focus. The stepper already names the level and a change of level is announced. It is drawn under every card, wire and label, away from the overview (bottom-left) and the level pill (top), and it stays in its corner while a magnified diagram scrolls (a sticky box as tall as the viewport that takes none of its room).
+- Tests: `tests/tux-architecture-map-level-mark.nuxt.test.ts` (the text after each change, `aria-hidden`, its place before the stage, the stylesheet's rules and the forced-colours rule). axe finds no violation on the canvas with it in any of the four themes.
+
+**To check when upgrading:** a host that draws something of its own in the canvas's bottom-right corner, under the cards, will find the word there. A test that reads the viewport's whole text (`textContent`) now also reads "LEVEL n". The bundled payload the package's size test measures went from 101,313 B to 101,722 B on macOS and from 101,744 B to 102,192 B on the Linux CI runner, over the 102,000 B budget there, so the budget is 102,500 B until #242 sets it once.
+
 ### Fixed — Architecture map: the trailing cursor is drawn under the cards, in its own colour per theme, and trails faster (#256)
 
 - **It no longer covers the card it rests on.** The cursor was a child of the viewport after the stage, at `z-index: 19` with `mix-blend-mode: difference`, so it was painted over the whole stage and inverted the card under it. It is now a child of the stage, after the boundaries, at `z-index: 0`: over the canvas and the boundaries' fills, under the cards, wires, labels, the proximity frame and every control. Resting on a card it is opaque, the card covers its middle and its 6 px of padding show as a ring around the card. The stage's scale and pan are undone on the element, so it is still placed in the viewport's px and keeps its size at every zoom.

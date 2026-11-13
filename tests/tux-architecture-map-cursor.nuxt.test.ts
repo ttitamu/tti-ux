@@ -142,7 +142,8 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     const cardBox = (id: string) => {
       const r = state.stageData.rects[id] as { x: number; y: number; w: number; h: number };
       const s = state.stageScale as number;
-      return { x: r.x * s + (state.panX as number), y: r.y * s, w: r.w * s, h: r.h * s };
+      // in the viewport: the stage is drawn lower where a shorter level is centred (#261)
+      return { x: r.x * s + (state.panX as number), y: (state.stageOffsetY as number) + r.y * s, w: r.w * s, h: r.h * s };
     };
     return { wrapper, state, viewport, stage, cursor, dot, disc, shown, send, cardBox };
   }
@@ -242,11 +243,15 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     const s = state.stageScale as number;
     const pan = state.panX as number;
     expect(s).toBeGreaterThan(0);
-    const t = /^scale\(([-\d.e]+)\) translateX\(([-\d.e]+)px\)$/.exec(cursor().element.style.transform);
+    const t = /^scale\(([-\d.e]+)\) translateY\(([-\d.e]+)px\) translateX\(([-\d.e]+)px\)$/.exec(
+      cursor().element.style.transform,
+    );
     expect(t, cursor().element.style.transform).not.toBeNull();
-    // a point p inside it lands at pan + s * (p - pan) / s = p in the viewport
+    // a point inside it lands where it says in the viewport: the stage's scale, its top offset (a
+    // centred level, #261) and its pan are each taken back
     expect(Number(t![1]) * s).toBeCloseTo(1, 9);
-    expect(Number(t![2])).toBeCloseTo(-pan, 9);
+    expect(Number(t![2])).toBeCloseTo(-(state.stageOffsetY as number), 9);
+    expect(Number(t![3])).toBeCloseTo(-pan, 9);
   });
 
   it("a coarse pointer gets nothing", async () => {
