@@ -12073,6 +12073,17 @@ function buildSourceHref(src?: {
     outline: 2px dashed Highlight;
     outline-offset: 2px;
   }
+
+  /* A faded card (#229) steps back by its surface and its hatch, and forced colours drop both: it
+     would read as a lit card. It takes GrayText, the system's colour for what is not active, for its
+     border and every line of its text; the key's swatch follows (#233) */
+  .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit),
+  .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) *,
+  .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) [class],
+  .tux-map__swatch--faded {
+    border-color: GrayText;
+    color: GrayText;
+  }
 }
 
 /* When the Outline rail (236px) is open on medium/tablet widths, stack the details drawer below instead of crushing the canvas */
