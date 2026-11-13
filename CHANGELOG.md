@@ -18,6 +18,10 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: less work while the pointer is over the map, and none while nothing happens (#223, #224, #228)
+
+- **An idle map draws no frames (#223).** The dashed beam from the pointer to the nearest card ran its flowing-dash animation all the time, on a transparent layer as large as the stage, so a map with nothing under the pointer repainted every frame. The dashes now run only while the beam is drawn (`.tux-map__proximity-tether--on`, set with its opacity). Under `prefers-reduced-motion` they stand still, as before.
+
 ### Added — Architecture map: an overview of the level fades in while the view moves (`minimap`) (#211)
 
 - `<TuxArchitectureMap>` draws a small overview of the level in the bottom-left corner of the canvas: every card a rectangle in its place, and a frame around the part in view. The selected card is filled with the brand colour and outlined, a changed card (with the blast radius on) takes the warning colour, and while the stage dims the cards a highlight does not reach, the overview dims the same ones.

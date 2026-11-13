@@ -3143,10 +3143,16 @@ function findNearestCardToPoint(
   return best;
 }
 
+// The beam's dashes run only under `--on`, set with its opacity: an always-mounted
+// beam that animated while transparent repainted the stage every frame (#223)
+function setProximityTether(svg: SVGSVGElement | null, opacity: string) {
+  if (!svg) return;
+  svg.style.opacity = opacity;
+  svg.classList.toggle("tux-map__proximity-tether--on", opacity !== "0");
+}
+
 function hideProximityTetherDom() {
-  if (proximityTetherSvgRef.value) {
-    proximityTetherSvgRef.value.style.opacity = "0";
-  }
+  setProximityTether(proximityTetherSvgRef.value, "0");
 }
 
 function setProximityClassOnDom(nextId: string | null) {
@@ -3211,9 +3217,9 @@ function renderProximityMatch(
         glideProgress > 0
           ? Math.min(0.95, 0.45 + glideProgress * 0.5)
           : Math.max(0.28, 1 - nearest.dist / 42);
-      svgEl.style.opacity = strength.toFixed(2);
+      setProximityTether(svgEl, strength.toFixed(2));
     } else {
-      svgEl.style.opacity = "0";
+      setProximityTether(svgEl, "0");
     }
   }
 }
@@ -10216,6 +10222,9 @@ function buildSourceHref(src?: {
   stroke-width: 1.75;
   stroke-dasharray: 5 5;
   stroke-linecap: round;
+}
+
+.tux-map__proximity-tether--on .tux-map__proximity-beam {
   animation: tux-map-wire-flow 0.55s linear infinite;
 }
 
@@ -11972,7 +11981,7 @@ function buildSourceHref(src?: {
   /* the flowing dashes and the zoom pop are motion: the wire keeps its dash
      pattern and colour, so what it marks is still there, standing still */
   .tux-map__wire-fg--stream,
-  .tux-map__proximity-beam,
+  .tux-map__proximity-tether--on .tux-map__proximity-beam,
   .tux-map__zoom-hud,
   .tux-map__wheel-veil {
     animation: none;
