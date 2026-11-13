@@ -21,6 +21,7 @@ conventions.
 ### Changed — Architecture map: less work while the pointer is over the map, and none while nothing happens (#223, #224, #228)
 
 - **An idle map draws no frames (#223).** The dashed beam from the pointer to the nearest card ran its flowing-dash animation all the time, on a transparent layer as large as the stage, so a map with nothing under the pointer repainted every frame. The dashes now run only while the beam is drawn (`.tux-map__proximity-tether--on`, set with its opacity). Under `prefers-reduced-motion` they stand still, as before.
+- **A pointer move reads no layout (#224).** Each move read the viewport's box and scroll position, and with `cursor` on the cursor read them again after the map's own writes, which made the browser lay the page out again inside the handler. The map now keeps the viewport's place on the page and its scroll position between moves, and the cursor uses the same numbers: the box is read again after a window resize, a resize of the map, a scroll of the page or the pointer leaving the viewport, and the scroll position in the viewport's own scroll event and after the map scrolls it. The nearest card is found by distance first, with one table a stage of the cards that zoom. Stage coordinates now count the viewport's 1 px border, as the cursor already did.
 
 ### Added — Architecture map: an overview of the level fades in while the view moves (`minimap`) (#211)
 

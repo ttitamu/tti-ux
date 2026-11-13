@@ -4,6 +4,9 @@
  *
  * - The proximity beam's flowing dashes run only while the beam is drawn (#223): an idle map
  *   with a running animation repaints its stage every frame.
+ * - A pointer move reads no layout (#224): the viewport's place on the page and its scroll
+ *   position are kept between moves, read again after a resize, a scroll or the pointer leaving.
+ *   A read after the previous move's writes is a forced layout, so the count is what matters.
  *
  * jsdom does no layout and runs no CSS animation: what a browser would animate is read from the
  * classes the component sets and from the stylesheet's own rules.
@@ -32,6 +35,23 @@ const model = {
 } as unknown as TuxMapLevelModel;
 
 type SetupState = Record<string, any>;
+
+/** A fine pointer with motion allowed: the trailing cursor (#208) is drawn, and reads what the map reads. */
+function stubFinePointer() {
+  vi.stubGlobal("matchMedia", (q: string) => ({
+    matches: !q.includes("coarse") && !q.includes("reduce)"),
+    media: q,
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+}
+
+/** The cursor's frames held in a queue that the test does not run: only the reads a move makes are counted. */
+function holdFrames() {
+  let id = 0;
+  vi.stubGlobal("requestAnimationFrame", () => ++id);
+  vi.stubGlobal("cancelAnimationFrame", () => {});
+}
 
 const sfc = readFileSync(join(process.cwd(), "packages/diagrams/app/components/TuxArchitectureMap.vue"), "utf8");
 const css = sfc.slice(sfc.indexOf("<style"));
@@ -121,5 +141,105 @@ describe("TuxArchitectureMap: the cost of an idle map and of a pointer over it (
       await send("pointermove", viewport, 4000, 4000);
       expect(on()).toBe(false);
     });
+  });
+
+  describe("a pointer move reads no layout (#224)", () => {
+    /** Counts what a move could read from the layout: the viewport's box and its scroll position. */
+    function countReads(viewport: HTMLElement) {
+      const reads = { box: 0, scroll: 0 };
+      const scroll = { left: 0, top: 0 };
+      const box = viewport.getBoundingClientRect.bind(viewport);
+      viewport.getBoundingClientRect = () => {
+        reads.box++;
+        return box();
+      };
+      for (const [prop, key] of [["scrollLeft", "left"], ["scrollTop", "top"]] as const) {
+        Object.defineProperty(viewport, prop, {
+          configurable: true,
+          get: () => {
+            reads.scroll++;
+            return scroll[key];
+          },
+          set: (v: number) => void (scroll[key] = Math.max(0, v)),
+        });
+      }
+      const take = () => {
+        const r = { ...reads };
+        reads.box = 0;
+        reads.scroll = 0;
+        return r;
+      };
+      return { take, scroll };
+    }
+
+    for (const cursor of [false, true]) {
+      it(`reads the viewport's box once, and then not again until something moves it (cursor ${cursor ? "on" : "off"})`, async () => {
+        stubFinePointer();
+        holdFrames();
+        const { viewport, stage, send, state, cardBox, wrapper } = await mountMap({ cursor });
+        const reads = countReads(viewport);
+        const b = cardBox("c-a");
+        const s = state.stageScale as number;
+        /** 24 moves, a frame's worth of a fast pointer and more: near the card, on it, and away from it. */
+        const batch = async (dx = 0) => {
+          for (let i = 0; i < 24; i++) {
+            const at = i % 3;
+            const x = at === 0 ? b.x - 20 * s : at === 1 ? b.x + b.w / 2 : 4000;
+            await send("pointermove", stage, x + dx, b.y + b.h / 2);
+          }
+        };
+
+        await batch();
+        // the first move reads the box and the scroll position, once each
+        expect(reads.take()).toEqual({ box: 1, scroll: 2 });
+        expect(state.proximityCard).toBeNull();
+        await send("pointermove", stage, b.x - 20 * s, b.y + b.h / 2);
+        expect(state.proximityCard?.id).toBe("c-a");
+        await batch();
+        expect(reads.take()).toEqual({ box: 0, scroll: 0 });
+
+        // the viewport's own scroll: its scroll position is read in the scroll event, once, and the box is not
+        reads.scroll.left = 30;
+        viewport.dispatchEvent(new window.Event("scroll"));
+        await nextTick();
+        expect(reads.take()).toEqual({ box: 0, scroll: 2 });
+        // the scrolled content is 30 px further left: the same card is 30 px nearer the pointer's left
+        await send("pointermove", stage, b.x - 20 * s - 30, b.y + b.h / 2);
+        expect(state.proximityCard?.id).toBe("c-a");
+        await batch(-30);
+        expect(reads.take()).toEqual({ box: 0, scroll: 0 });
+        if (cursor) {
+          // the trailing cursor is placed from the same reads: the dot is on the pointer in the scrolled content
+          const dot = wrapper.find(".tux-map__cursor").element.firstElementChild as HTMLElement;
+          await send("pointermove", stage, 700, 20);
+          expect(dot.style.transform).toBe("translate(730px,20px)");
+        }
+
+        // a resize of the window, a scroll of the page and the pointer leaving may each move the box: read again, once
+        window.dispatchEvent(new window.Event("resize"));
+        await batch(-30);
+        expect(reads.take()).toEqual({ box: 1, scroll: 0 });
+        document.dispatchEvent(new window.Event("scroll"));
+        await batch(-30);
+        expect(reads.take()).toEqual({ box: 1, scroll: 0 });
+        await send("pointerleave", viewport, -10, -10);
+        await batch(-30);
+        expect(reads.take()).toEqual({ box: 1, scroll: 0 });
+
+        // the map scrolling the viewport itself (a drag of the background, 60 px) reads the scroll position again
+        viewport.setPointerCapture = () => {};
+        await send("pointerdown", stage, 700, 20);
+        const drag = new window.MouseEvent("pointermove", { bubbles: true, clientX: 640, clientY: 20, buttons: 1 });
+        Object.defineProperty(drag, "pointerId", { value: 1 });
+        stage.dispatchEvent(drag);
+        await send("pointerup", stage, 640, 20);
+        expect(reads.scroll.left).toBe(90);
+        await send("pointermove", stage, b.x - 20 * s - 90, b.y + b.h / 2);
+        expect(state.proximityCard?.id).toBe("c-a");
+        reads.take();
+        await batch(-90);
+        expect(reads.take()).toEqual({ box: 0, scroll: 0 });
+      });
+    }
   });
 });
