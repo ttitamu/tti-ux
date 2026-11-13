@@ -57,8 +57,14 @@ describe("TuxUtilityCluster Component", () => {
     expect(hcBtn.exists()).toBe(true);
     expect(hcBtn.attributes("aria-label")).toContain("high-contrast");
 
+    // the universal-access figure, outline at rest and filled while on (#253)
+    expect(hcBtn.html()).toContain("tux:accessibility");
+    expect(hcBtn.html()).not.toContain("tux:accessibility-active");
+    expect(hcBtn.html()).not.toContain("lucide:accessibility");
+
     await hcBtn.trigger("click");
     expect(wrapper.find(".tux-utility-cluster__hc-btn--active").exists()).toBe(true);
+    expect(wrapper.find(".tux-utility-cluster__hc-btn").html()).toContain("tux:accessibility-active");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);

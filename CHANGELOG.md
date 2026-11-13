@@ -40,6 +40,15 @@ conventions.
 - A test or a screen reader script that reads a card's status line ("2/2 running", "Off", "Last run fine", "Not installed", "State unknown") or its accessible name, which now has the status line after the type and host and before the chips.
 - A layout that counted on a card's second title line or its second description line beside a host row.
 
+### Changed — the accessibility icon is the universal-access figure, filled while a setting is on (#253)
+
+- **The icon.** Lucide's `accessibility` (a wheelchair, which stands for physical access) is replaced by the universal-access figure in a circle, the sign for the accessibility of a digital surface: Tabler Icons' `accessible`, MIT. `TuxUtilityCluster`'s high-contrast button, the docs site's footer toggle and its Accessibility link draw it.
+- **The active state.** While high contrast is on, the button draws the filled form (Tabler's `accessible-filled`) in the theme's `--brand-primary`, on the bar's own background, so the state shows by its shape as well as its colour; it used to fill the whole button with the brand colour. The footer toggle switches to the filled form in the footer's own colour.
+- **TUX's own icon set, `tux:`.** `app/assets/icons/tux/` holds the icons TUX draws that are not Lucide's, registered by the layer as the `tux` collection (`<Icon name="tux:accessibility" />`, `tux:accessibility-active`), with Tabler's licence beside them. `tux-icons.json` is the same set as an Iconify collection, for a consumer that builds its own sprite or inlines the SVG.
+- Tests: `tests/tux-icons.test.ts` keeps the SVG files and the JSON in step, checks every drawing is in `currentColor` and the licence is there; the utility cluster's test checks the icon swaps.
+
+**To check when upgrading:** a host stylesheet or a test that expects `.tux-utility-cluster__hc-btn--active` to have the brand colour as its background, or looks for `lucide:accessibility`, should be checked. An app that draws its own accessibility icon can use `tux:accessibility` once it extends this layer.
+
 ## [3.13.0] — 2026-11-13
 
 The architecture map's 3.13 fixes, its 3.14 enhancements and the first phase of its performance work (#221), in one release. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.12.0:
