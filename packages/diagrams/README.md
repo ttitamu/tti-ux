@@ -335,6 +335,24 @@ What a host sees, by what it passes to `model`:
 
 To check a file where it is produced, call `validateMapModel()` on the document as written, not on the normalizer's output, which is already stamped.
 
+### What a card shows, and what its status line means
+
+A card is always the size the layout plans for it, hovered and chosen too, so its highlight, its ports and its wires stay on its edges. Its rows, top to bottom: the name on one line (cut with an ellipsis; the full name is the card's tooltip, its accessible name and the details panel's heading), where an outside card lives, the type line (kind · `tech`, at the size of the body text), the host it runs on, then a hairline and the description in the whole lines left (the full text is its tooltip and is in the panel), and the status line with its chips. The list view shows every row in full.
+
+The status line comes from the element's `live` (`TuxMapElementLiveInfo`), and the card's accessible name, the list view and the panel's "State" say the same words:
+
+| `live` | The card says | The dot |
+|---|---|---|
+| `total` above 1 | "`running` of `total` instances running": `total` is how many instances of the element are meant to run (the replicas of a container, the processes of a service, the jobs of a scheduler, the running parts of a system), `running` how many run now (all of them when left out) | green when all run, amber when some do not, red when none do |
+| `last_run.result` `"success"` / `"failed"` / another word | "Last run succeeded" / "Last run failed" / "Last run: …" | green / red / none |
+| `state` `running` or `active` | "Running": its process is up | green |
+| `state` `present` | "Installed": a package or a tool, with no process the model watches | green |
+| `state` `success` | "Last run succeeded": its last scheduled or one-off run ended without an error | green |
+| `state` `inactive` | "Installed, not running" | amber |
+| `state` `declared-not-installed` | "Declared, not installed": the configuration names it, the host does not have it | amber |
+| `state` `failed` | "Failed: stopped with an error" | red |
+| `state` `unknown` | "State not reported" | none |
+
 ### The schema file, and what the validator checks with it
 
 `schema/tux-map-1.schema.json` is the JSON Schema (draft 2020-12) of `tux-map/1`: `TuxMapLevelModel` and every type it is made of, with their doc comments as descriptions. It is generated from the TypeScript types by `scripts/build-map-schema.mjs` and never edited; the package's tests fail when the file is out of date with the types (`npm run check:schema -w @tti/tti-ux-diagrams`, and `build:schema` to write it). Import it as `@tti/tti-ux-diagrams/schema/tux-map-1.schema.json` to check a document in a producer written in any language. Any JSON Schema 2020-12 validator reads it; in JavaScript, `validateMapModel()` does the same check with no validator to install.
