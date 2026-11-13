@@ -60,7 +60,7 @@ describe("the blast radius tables are kept per model (#227)", () => {
         expect(warm, `${intent} ${seed}`).toEqual(cold);
       }
     }
-  });
+  }, 30_000); // a full radius per intent and seed, twice; a shared runner needs more than the 5 s default
 
   it("keeps the tables of each model apart", () => {
     const o = buildSyntheticMapModel({ symbols: 500, cardsPerView: 12, seed: 9 });
