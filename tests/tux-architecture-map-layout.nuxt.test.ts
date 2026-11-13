@@ -593,7 +593,7 @@ describe("TuxArchitectureMap: a planned link the model gives no label (#205)", (
     expect(wrapper.find('.tux-map__wire--planned[data-from="c-sandbox"][data-to="c-storage"]').exists()).toBe(true);
     expect(label("c-sandbox", "c-storage").find(".tux-map__lab-t1").text()).toBe("Planned");
     // a planned link with a label of its own keeps it, and a live link with none still has none
-    expect(label("c-workers", "c-sandbox").find(".tux-map__lab-t1").text()).toBe("Dispatche…");
+    expect(label("c-workers", "c-sandbox").find(".tux-map__lab-t1").text()).toBe("Dispa…");
     expect(label("c-workers", "c-sandbox").attributes("title")).toBe("Dispatches plugins [gRPC] (planned)");
     expect(wrapper.find('.tux-map__wire[data-from="c-web"][data-to="c-storage"]').exists()).toBe(true);
     expect(label("c-web", "c-storage").exists()).toBe(false);

@@ -38,7 +38,20 @@ const rank = (l: TuxMapRoutedLabel) => (l.violating ? 0 : l.t2 ? 3 : l.planned ?
 const text = (l: TuxMapRoutedLabel) => l.t1 || `[${l.t2}]`;
 
 describe("shortWireLabel (#210)", () => {
-  it("keeps a label of up to ten characters, and the leading words of a longer one", () => {
+  it("keeps a label of up to sixteen characters, and the leading words of a longer one", () => {
+    const at16: [string, string][] = [
+      ["Reads & writes", "Reads & writes"],
+      ["Uses portal & API", "Uses portal…"],
+      ["Signs users in; syncs roles", "Signs users in…"],
+      ["Exports nightly datasets", "Exports nightly…"],
+    ];
+    for (const [full, short] of at16) {
+      expect(shortWireLabel(full), full).toBe(short);
+      expect(Array.from(shortWireLabel(full)).length, full).toBeLessThanOrEqual(16);
+    }
+  });
+
+  it("cuts to ten characters where sixteen do not fit", () => {
     const cases: [string, string][] = [
       ["Reads", "Reads"],
       ["Calls REST", "Calls REST"],
@@ -56,8 +69,8 @@ describe("shortWireLabel (#210)", () => {
       ["OpenTelemetry", "OpenTelem…"],
     ];
     for (const [full, short] of cases) {
-      expect(shortWireLabel(full), full).toBe(short);
-      expect(Array.from(shortWireLabel(full)).length, full).toBeLessThanOrEqual(10);
+      expect(shortWireLabel(full, 10), full).toBe(short);
+      expect(Array.from(shortWireLabel(full, 10)).length, full).toBeLessThanOrEqual(10);
     }
   });
 
@@ -75,7 +88,7 @@ describe("where a wire's labels go (#210)", () => {
     const { labels } = routeGridWires([{ from: "a", to: "b", label: "Reads & writes", tech: "SQL 5432" }], rects, els);
     expect(labels).toHaveLength(2);
     const [verb, tech] = labels as [TuxMapRoutedLabel, TuxMapRoutedLabel];
-    expect(verb).toMatchObject({ end: "from", side: "r", t1: "Reads…", t2: "", forced: false, full: "Reads & writes [SQL 5432]" });
+    expect(verb).toMatchObject({ end: "from", side: "r", t1: "Reads & writes", t2: "", forced: false, full: "Reads & writes [SQL 5432]" });
     expect(tech).toMatchObject({ end: "to", side: "l", t1: "", t2: "SQL 5432", forced: false, full: "Reads & writes [SQL 5432]" });
     // 4 px off the card, on the wire's stub
     expect(verb.x).toBe(rects.a!.x + rects.a!.w + 4);
@@ -134,7 +147,7 @@ describe("where a wire's labels go (#210)", () => {
     );
     expect(labels.map((l) => [text(l), l.full, l.planned])).toEqual([
       ["Planned", "Planned", true],
-      ["Exports…", "Exports nightly datasets [Parquet]", true],
+      ["Exports nightly…", "Exports nightly datasets [Parquet]", true],
       ["[Parquet]", "Exports nightly datasets [Parquet]", true],
     ]);
     expect(wireLabelAttrs(labels[1]!)["aria-label"]).toBe("Inspect wire Exports nightly datasets [Parquet] (planned)");
@@ -285,11 +298,11 @@ const AT_THE_PORTS: [string, string, number, number, number][] = [
   ["synthetic-500", "1", 1, 5, 0],
   ["synthetic-500", "2", 1, 3, 0],
   ["synthetic-500", "3", 2, 4, 0],
-  ["synthetic-500", "5+", 51, 1358, 75],
+  ["synthetic-500", "5+", 51, 1358, 84],
   ["synthetic-2500", "1", 1, 5, 0],
   ["synthetic-2500", "2", 1, 4, 0],
   ["synthetic-2500", "3", 3, 15, 0],
-  ["synthetic-2500", "5+", 282, 6810, 406],
+  ["synthetic-2500", "5+", 282, 6810, 425],
   ["synthetic-10000", "1", 1, 5, 0],
   ["synthetic-10000", "2", 1, 14, 0],
   ["synthetic-10000", "3", 13, 67, 0],

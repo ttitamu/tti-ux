@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb123a1fe9bc3221a6ea36eb596971c3370b706951cdfadc407b81c1f1c9dcfa
+// SOURCE-SHA256: 428fa86008bc066cdaefacdaa6cbb728a9ba581776c54fa64f76ea3fa0ea4405
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -570,8 +570,8 @@ export const GRID_METRICS = {
 };
 const WIRE_LABEL_H = 17;
 const WIRE_LABEL_GAP = 4;
-const WIRE_LABEL_CHARS = [10, 6];
-export function shortWireLabel(text, max = 10) {
+const WIRE_LABEL_CHARS = [16, 10, 6];
+export function shortWireLabel(text, max = 16) {
     const chars = Array.from(text.trim());
     if (chars.length <= max)
         return chars.join("");
@@ -1364,7 +1364,7 @@ export function routeGridWires(rels, rects, els) {
                 if (s === last)
                     continue;
                 last = s;
-                const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 14 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 14);
+                const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 18 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 18);
                 const across = e.side === "l" || e.side === "r";
                 for (const beside of [0, 1, -1, 2, -2]) {
                     const off = Math.abs(beside) > 1 ? WIRE_LABEL_H / 2 : 1;
@@ -1416,7 +1416,7 @@ export function routeGridWires(rels, rects, els) {
                 }
             }
             short = shortWireLabel(job.text, WIRE_LABEL_CHARS[WIRE_LABEL_CHARS.length - 1]);
-            const w = Math.round(short.length * 6.1 + 14);
+            const w = Math.round(short.length * 6.1 + 18);
             box = {
                 x: (job.pts[best][0] + job.pts[best + 1][0]) / 2 - w / 2,
                 y: (job.pts[best][1] + job.pts[best + 1][1]) / 2 - WIRE_LABEL_H / 2,

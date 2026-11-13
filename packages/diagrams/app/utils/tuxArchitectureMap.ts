@@ -1737,18 +1737,21 @@ export interface TuxMapRoutedLabel {
   planned?: boolean;
 }
 
-/** Height of a port label, its distance from the card, and the lengths its text is cut to (`#210`). */
+/**
+ * Height of a port label, its distance from the card, and the lengths its text is cut to (`#210`):
+ * 16 characters where the port has room (a top or bottom port, an outer margin), else 10, else 6.
+ */
 const WIRE_LABEL_H = 17;
 const WIRE_LABEL_GAP = 4;
-const WIRE_LABEL_CHARS = [10, 6] as const;
+const WIRE_LABEL_CHARS = [16, 10, 6] as const;
 
 /**
  * A wire label's short text: the label itself up to `max` characters, else its leading words that
- * fit, without trailing punctuation, and an ellipsis ("Reads & writes" reads "Reads…"). A first
- * word longer than that is cut.
+ * fit, without trailing punctuation, and an ellipsis ("Uses portal & API" reads "Uses portal…" at
+ * 16, "Uses…" at 10). A first word longer than that is cut.
  * @internal
  */
-export function shortWireLabel(text: string, max = 10): string {
+export function shortWireLabel(text: string, max = 16): string {
   const chars = Array.from(text.trim());
   if (chars.length <= max) return chars.join("");
   const head = chars.slice(0, max - 1).join("");
@@ -2012,11 +2015,12 @@ function assignCorridorLanes(gapLo: number, gapHi: number, reqs: CorridorLaneReq
  * Each labelled wire gets a short label beside its ends, at the port where it meets the card,
  * outside the card's box and never over any card (`#210`): what the link does (`label`, or
  * "Planned") at its source end, and its `tech` in brackets at its target end. The short text is
- * `shortWireLabel`'s; the whole of it is each label's `full`. Labels at one side of a card stack
- * port by port, in the order the wires leave. Where two labels want the same spot the later one
- * moves off its stub to just beside it, then its text is shortened once, then what the link does
- * moves to the wire's other end, and then the label of the
- * lower rank is hidden at rest (`forced`): rule violations first, then live links, then planned
+ * `shortWireLabel`'s, at 16 characters where that fits and 10 where it does not; the whole of it
+ * is each label's `full`. Labels at one side of a card stack port by port, in the order the wires
+ * leave. Where two labels want the same spot the later one moves off its stub to just beside it,
+ * then its text is cut shorter, down to 6 characters, then what the link does moves to the wire's
+ * other end, and then the label of the lower rank is hidden at rest (`forced`): rule violations
+ * first, then live links, then planned
  * ones, then technologies, and the model's order within a rank. A hidden label keeps its place at
  * the port. A box is tested through the layout's grid buckets, not against the whole view (`#159`).
  * @internal
@@ -2685,7 +2689,7 @@ export function routeGridWires(
         if (s === last) continue;
         last = s;
         // The second term is the brackets around a technology, or the sign before a violation
-        const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 14 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 14);
+        const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 18 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 18);
         const across = e.side === "l" || e.side === "r";
         // On the wire's stub; else beside the stub, below or right of it, then above or left of
         // it; else half a label further off, which clears a label on the facing card's stub
@@ -2739,7 +2743,7 @@ export function routeGridWires(
         }
       }
       short = shortWireLabel(job.text, WIRE_LABEL_CHARS[WIRE_LABEL_CHARS.length - 1]!);
-      const w = Math.round(short.length * 6.1 + 14);
+      const w = Math.round(short.length * 6.1 + 18);
       box = {
         x: (job.pts[best]![0] + job.pts[best + 1]![0]) / 2 - w / 2,
         y: (job.pts[best]![1] + job.pts[best + 1]![1]) / 2 - WIRE_LABEL_H / 2,

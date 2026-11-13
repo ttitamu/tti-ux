@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb123a1fe9bc3221a6ea36eb596971c3370b706951cdfadc407b81c1f1c9dcfa
+// SOURCE-SHA256: 428fa86008bc066cdaefacdaa6cbb728a9ba581776c54fa64f76ea3fa0ea4405
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -942,8 +942,8 @@ export interface TuxMapRoutedLabel {
 }
 /**
  * A wire label's short text: the label itself up to `max` characters, else its leading words that
- * fit, without trailing punctuation, and an ellipsis ("Reads & writes" reads "Reads…"). A first
- * word longer than that is cut.
+ * fit, without trailing punctuation, and an ellipsis ("Uses portal & API" reads "Uses portal…" at
+ * 16, "Uses…" at 10). A first word longer than that is cut.
  * @internal
  */
 export declare function shortWireLabel(text: string, max?: number): string;
@@ -967,11 +967,12 @@ export declare function roundOrthogonalCorners(pts: [number, number][]): string;
  * Each labelled wire gets a short label beside its ends, at the port where it meets the card,
  * outside the card's box and never over any card (`#210`): what the link does (`label`, or
  * "Planned") at its source end, and its `tech` in brackets at its target end. The short text is
- * `shortWireLabel`'s; the whole of it is each label's `full`. Labels at one side of a card stack
- * port by port, in the order the wires leave. Where two labels want the same spot the later one
- * moves off its stub to just beside it, then its text is shortened once, then what the link does
- * moves to the wire's other end, and then the label of the
- * lower rank is hidden at rest (`forced`): rule violations first, then live links, then planned
+ * `shortWireLabel`'s, at 16 characters where that fits and 10 where it does not; the whole of it
+ * is each label's `full`. Labels at one side of a card stack port by port, in the order the wires
+ * leave. Where two labels want the same spot the later one moves off its stub to just beside it,
+ * then its text is cut shorter, down to 6 characters, then what the link does moves to the wire's
+ * other end, and then the label of the lower rank is hidden at rest (`forced`): rule violations
+ * first, then live links, then planned
  * ones, then technologies, and the model's order within a rank. A hidden label keeps its place at
  * the port. A box is tested through the layout's grid buckets, not against the whole view (`#159`).
  * @internal

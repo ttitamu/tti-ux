@@ -63,7 +63,7 @@ describe("TuxArchitectureMap: wire labels at the ports (#210)", () => {
     const rel = labels.find((l) => l.from === "c-api" && l.to === "c-db" && l.t1)!;
     const els = labelEls(wrapper).filter((el) => el.dataset.from === "c-api" && el.dataset.to === "c-db");
     expect(els.map((el) => [el.dataset.end, el.textContent?.replace(/\s+/g, " ").trim()])).toEqual([
-      ["from", "Reads…"],
+      ["from", "Reads & writes"],
       ["to", "[SQL 5432]"],
     ]);
     expect(rel.full).toBe("Reads & writes [SQL 5432]");
@@ -89,7 +89,7 @@ describe("TuxArchitectureMap: wire labels at the ports (#210)", () => {
   it("names each label with the whole text, which the short text drawn leaves out", async () => {
     const { wrapper } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
     const [verb, tech] = labelEls(wrapper).filter((el) => el.dataset.from === "p-users" && el.dataset.to === "c-edge");
-    expect(verb!.textContent?.trim()).toBe("Uses…");
+    expect(verb!.textContent?.trim()).toBe("Uses portal…");
     expect(verb!.getAttribute("aria-label")).toBe("Inspect wire Uses portal & API [HTTPS 443]");
     expect(verb!.getAttribute("title")).toBe("Uses portal & API [HTTPS 443]");
     expect(verb!.hasAttribute("tabindex")).toBe(false);
@@ -100,7 +100,8 @@ describe("TuxArchitectureMap: wire labels at the ports (#210)", () => {
     expect(planned).toBeUndefined();
     const { wrapper: shown } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialShowPlanned: true });
     const p = labelEls(shown).find((el) => el.dataset.from === "c-workers" && el.dataset.to === "c-sandbox" && el.dataset.end === "from")!;
-    expect(p.textContent?.trim()).toBe("Dispatche…");
+    // crowded at its port, the planned label is cut to 6 characters
+    expect(p.textContent?.trim()).toBe("Dispa…");
     expect(p.getAttribute("aria-label")).toBe("Inspect wire Dispatches plugins [gRPC] (planned)");
     expect(p.hasAttribute("data-planned")).toBe(true);
   });
