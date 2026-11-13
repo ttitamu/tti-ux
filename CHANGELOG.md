@@ -18,6 +18,13 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: no flicker between two sizes when the host resizes to fit the map (#268)
+
+- **A host that sizes its frame to the map no longer makes it flicker.** In such a page, a map a few px taller made a scrollbar appear in the frame for one frame; the viewport lost about 15 px of width, the fit scale and the held height (#261) dropped, the scrollbar went, the width came back, and it repeated on every animation frame (seen at 0.760 and 0.770 scale, 87 changes in 1.5 s). The width the map lays itself out for now takes a narrower width at once, and a wider one only when it grows by more than 24 px, so the loop ends in one step.
+- Tests: `tests/tux-architecture-map-resize-loop.nuxt.test.ts` feeds the alternating widths and checks the scale and height settle, and that a real widening and a narrowing are still followed.
+
+**To check when upgrading:** after the window widens by 24 px or less, the map stays fitted to the narrower width until it widens further.
+
 ## [3.14.0] — 2026-11-13
 
 The accessibility icon becomes the universal-access figure, and the architecture map gets a pass on how it reads at a glance. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.13.0:
