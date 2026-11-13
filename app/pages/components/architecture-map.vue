@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_TTI_LEVEL_MODEL } from "~/utils/tuxArchitectureMapSample";
-import {
-  type TuxMapInkStroke,
-  type TuxMapLevelModel,
-  type TuxMapStickyNote,
-} from "~/utils/tuxArchitectureMap";
+import type { TuxMapInkStroke, TuxMapLevelModel, TuxMapStickyNote } from "~/utils/tuxArchitectureMap";
 
 useHead({ title: "TuxArchitectureMap (M.A.P.) · Multi-Level Semantic Zoom · TUX" });
 
