@@ -3355,6 +3355,31 @@ export function plainElementKindLabel(
 }
 
 /**
+ * The type line of an element: its plain kind (`plainElementKindLabel()`) and its `tech`, joined by
+ * `separator` (`" · "` by default). A `tech` that starts with the kind's own word or words, in any
+ * case and followed by nothing, a space or a separator, does not say it twice: a folder whose
+ * producer wrote `tech: "folder · 4 files"` reads "folder · 4 files", not "folder · folder · 4
+ * files" (`#231`). The card, the list view, a boundary and a card's accessible name all use it.
+ * @public
+ */
+export function elementTypeLabel(
+  el: Pick<TuxMapLevelElement, "id" | "kind" | "name" | "tech" | "source"> | undefined,
+  opts: { separator?: string } = {},
+): string {
+  const kind = plainElementKindLabel(el);
+  const tech = typeof el?.tech === "string" ? el.tech.trim() : "";
+  if (!tech) return kind;
+  const sep = opts.separator ?? " · ";
+  const lead = new RegExp(
+    `^${kind.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}_])\\s*(?:[·:|,;/\u2013\u2014-]\\s*)*`,
+    "iu",
+  );
+  const rest = tech.replace(lead, "").trim();
+  if (!rest) return kind;
+  return `${kind}${sep}${rest}`;
+}
+
+/**
  * Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`).
  * @public
  */

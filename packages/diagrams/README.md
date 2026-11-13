@@ -144,7 +144,7 @@ The component has no slots and calls no `defineExpose()`: a template ref gives a
 
 ### The runtime: public exports
 
-Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 118 public exports: 9 constants, 34 functions and 75 types. The constants and functions, by purpose:
+Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 119 public exports: 9 constants, 35 functions and 75 types. The constants and functions, by purpose:
 
 **Reading and checking a model**
 
@@ -165,6 +165,7 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 |---|---|
 | `TUX_MAP_ELEMENT_KIND_LABELS` | The label of each `TuxMapElementKind`. |
 | `plainElementKindLabel()` | The plain name of an element's kind: folder, file, function, class, HTTP route. |
+| `elementTypeLabel()` | An element's type line, its kind and its `tech`, as the card shows it. A `tech` that starts with the kind does not repeat it: "folder · 4 files". |
 | `TUX_MAP_LINK_KIND_LABELS` | What each link kind means, read from the part it points at. |
 | `TUX_MAP_LINK_STRENGTH_ORDER` | The link kinds from strongest to weakest. It breaks ties in the blast radius. |
 | `TUX_MAP_QUIET_LINK_KINDS` | The link kinds drawn on no stage (`mentions`). They still count in the blast radius. |

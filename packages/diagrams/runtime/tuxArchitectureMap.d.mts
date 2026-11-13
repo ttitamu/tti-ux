@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 428fa86008bc066cdaefacdaa6cbb728a9ba581776c54fa64f76ea3fa0ea4405
+// SOURCE-SHA256: bef8e47401c596157979e99beff141efe9b197fc01edf682a5ed264ddcdea17a
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -1045,6 +1045,17 @@ export declare function deriveLinkId(link: Pick<TuxMapLink, "kind" | "from" | "t
  */
 export declare function plainElementKindLabel(elOrKind: Pick<TuxMapLevelElement, "id" | "kind" | "name" | "tech" | "source"> | string | undefined, opts?: {
     hasSourcePath?: boolean;
+}): string;
+/**
+ * The type line of an element: its plain kind (`plainElementKindLabel()`) and its `tech`, joined by
+ * `separator` (`" · "` by default). A `tech` that starts with the kind's own word or words, in any
+ * case and followed by nothing, a space or a separator, does not say it twice: a folder whose
+ * producer wrote `tech: "folder · 4 files"` reads "folder · 4 files", not "folder · folder · 4
+ * files" (`#231`). The card, the list view, a boundary and a card's accessible name all use it.
+ * @public
+ */
+export declare function elementTypeLabel(el: Pick<TuxMapLevelElement, "id" | "kind" | "name" | "tech" | "source"> | undefined, opts?: {
+    separator?: string;
 }): string;
 /**
  * Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`).

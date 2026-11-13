@@ -27,6 +27,7 @@ import {
   TUX_MAP_LINK_KIND_LABELS,
   classifyLinkDependencyCategory,
   cmpCodepoint,
+  elementTypeLabel,
   filterLinksByCategories,
   foldVendoredCopies,
   gridCellToPx,
@@ -831,7 +832,12 @@ function buildViewBase(
     sg,
     parentDn,
     boundaryLabel: cName,
-    boundaryType: sg?.stratum || plainElementKindLabel(cKind) + (cTech ? `: ${cTech}` : ""),
+    boundaryType:
+      sg?.stratum ||
+      elementTypeLabel(
+        parentEl ? { ...parentEl, tech: cTech } : { id: "", kind: cKind as TuxMapLevelElement["kind"], name: cName, tech: cTech },
+        { separator: ": " },
+      ),
     baseKids,
     folded,
     kids,

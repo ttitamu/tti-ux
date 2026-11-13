@@ -18,6 +18,13 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: a card's type line does not repeat its kind (#231)
+
+- Where a producer writes a `tech` that starts with the kind, as `"folder · 4 files"` on a folder, the card read "folder · folder · 4 files". It reads "folder · 4 files". A leading kind word is dropped in any case and before a space, `·`, `:`, `-` or nothing; a longer word that starts with it ("folders") is kept.
+- One helper joins the two, `elementTypeLabel(el, { separator })`, new and public in the runtime entry point beside `plainElementKindLabel()`. The card, its accessible name, the list view and the boundary of a view with no `stratum` use it. The boundary also names its card's kind as the card does: a folder card's boundary read "file: folder · 4 files" and now reads "folder: 4 files".
+- Tests: `packages/diagrams/tests/map-type-line.test.ts` (the helper, with the producer fixture's folder card, and the boundary) and `tests/tux-architecture-map-type-line.nuxt.test.ts` (the card, its accessible name and the list view, mounted).
+
+**To check when upgrading:** a test or a screen reader script that expected the repeated kind on a card, in the list view or on a boundary.
 ### Changed — Architecture map: a faded card fades by colour, not by opacity (#229)
 
 - **A card a highlight does not reach stays opaque.** It was drawn at opacity 0.28 while the wires a highlight does not reach are at 0.6 in the same layer, so a wire showed through a faded card, its text fell to about 2:1 on the canvas, and every faded card was a layer of its own to paint. It now keeps a surface mixed most of the way to the canvas colour (`--surface-raised` 25% into `--surface-sunken`), a quieter border (`--surface-border` 75% into the canvas) and no shadow or kind bar. A selection, a search, the blast radius and a trace fade the same way.

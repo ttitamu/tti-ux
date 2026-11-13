@@ -14,6 +14,7 @@ import {
   cmpCodepoint,
   compareBlastLinks,
   computeLinkBlastRadius,
+  elementTypeLabel,
   extendMapParentIndex,
   extractModelLinksKept,
   hasOwn,
@@ -2281,7 +2282,7 @@ const renderedCards = computed(() =>
     const r = hasOwn(stageData.value.rects, e.id) ? stageData.value.rects[e.id] : undefined;
     const kind = e.kind || "container";
     const plainKind = plainElementKindLabel(e);
-    const typeLabel = plainKind || e.tech ? `${plainKind}${e.tech ? ` · ${e.tech}` : ""}` : "";
+    const typeLabel = elementTypeLabel(e);
     const live = !e.mini ? formatLiveState(e) : null;
     const outsideLinks = e.mini ? stageData.value.outsideLinkCounts[e.id] || 0 : 0;
     const outMeta = stageData.value.outsideMetaById[e.id];
@@ -7944,8 +7945,8 @@ function buildSourceHref(src?: {
                   <Icon :name="elementIconName(e.kind)" class="tux-map__el-ic" aria-hidden="true" />
                   <span>{{ e.name }}</span>
                 </span>
-                <span v-if="plainElementKindLabel(e) || e.tech" class="tux-map__el-ty">
-                  [{{ plainElementKindLabel(e) }}{{ plainElementKindLabel(e) && e.tech ? " · " : "" }}{{ e.tech }}]
+                <span v-if="elementTypeLabel(e)" class="tux-map__el-ty">
+                  [{{ elementTypeLabel(e) }}]
                 </span>
                 <span v-if="e.desc" class="tux-map__el-ds">{{ e.desc }}</span>
               </button>
