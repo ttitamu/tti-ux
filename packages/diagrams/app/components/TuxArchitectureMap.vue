@@ -76,6 +76,7 @@ import {
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
+import { useTuxMapCursor } from "../composables/useTuxMapCursor";
 
 export type TuxMapViewMode = "diagram" | "list";
 
@@ -136,6 +137,8 @@ export interface TuxArchitectureMapProps {
   modelRef?: string;
   /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel; `"click"` puts the canvas under a "Click to explore" veil and leaves the wheel to the page until the reader clicks it or moves keyboard focus into the canvas; `#209`) */
   wheelZoom?: boolean | "click";
+  /** Whether a disc trails the pointer over the diagram and comes to rest on the card the pointer is near, or on the control it is over (`false` by default). Decoration: it is drawn only for a fine pointer with motion allowed, and not under the `wheelZoom="click"` veil (`#208`) */
+  cursor?: boolean;
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
   nodes?: TuxMapNode[];
   /** Legacy edges prop */
@@ -193,6 +196,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   resolveSubgraph: undefined,
   modelRef: undefined,
   wheelZoom: true,
+  cursor: false,
   nodes: () => [],
   edges: () => [],
   zones: () => [],
@@ -3503,6 +3507,7 @@ function onViewportScroll() {
   if (!viewportRef.value) return;
   viewportScrollLeft.value = viewportRef.value.scrollLeft;
   viewportScrollTop.value = viewportRef.value.scrollTop;
+  mapCursor.move();
 }
 
 /** The details panel follows the map instead of overlaying it: the list view, or a narrow map */
@@ -6392,6 +6397,16 @@ function onStagePointerDown(e: PointerEvent) {
 // are left to the browser, which already scrolls and pinches with them.
 const STAGE_DRAG_SLOP = 4;
 const isDraggingStage = ref<boolean>(false);
+
+// The trailing cursor (#208): the disc is the visible form of `proximityCard`
+const mapCursor = useTuxMapCursor({
+  on: () => props.cursor && activeTool.value === "select" && !wheelVeilShown.value,
+  card: proximityCard,
+  scale: stageScale,
+  pan: panX,
+  drag: isDraggingStage,
+});
+const { el: cursorRef, on: cursorOn, shown: cursorShown } = mapCursor;
 let stageDrag: {
   pointerId: number;
   x: number;
@@ -6453,7 +6468,7 @@ function endStageDrag(e: PointerEvent, cancelled = false) {
 
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
-  if (moveStageDrag(e)) return;
+  if (moveStageDrag(e)) return mapCursor.move(e);
   if (isWheelVeil(e.target)) return;
   const pt = getStageCoords(e);
 
@@ -6463,6 +6478,7 @@ function onStagePointerMove(e: PointerEvent) {
     activePenPoints.value.length === 0
   ) {
     updateProximityAtStagePoint(pt.x, pt.y);
+    mapCursor.move(e);
     return;
   }
 
@@ -7363,6 +7379,7 @@ function buildSourceHref(src?: {
             'tux-map__viewport--full-height': magnifiedShowsFullHeight,
             'tux-map__viewport--dragging': isDraggingStage,
             'tux-map__viewport--page-wheel': !plainWheelZooms && !isMagnified,
+            'tux-map__viewport--cursor': cursorShown,
           },
         ]"
         :style="{ height: computedViewportHeight }"
@@ -7377,6 +7394,7 @@ function buildSourceHref(src?: {
         @pointermove="onStagePointerMove"
         @pointerup="onStagePointerUp"
         @pointercancel="onStagePointerUp"
+        @pointerleave="mapCursor.leave"
         @keydown="onStageKeydown"
       >
         <!-- Click-to-explore veil: until it is clicked the wheel is the page's (wheelZoom="click", #209) -->
@@ -7957,6 +7975,16 @@ function buildSourceHref(src?: {
               fill="var(--status-critical)"
             />
           </svg>
+        </div>
+
+        <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only -->
+        <div
+          v-if="cursorOn"
+          ref="cursorRef"
+          class="tux-map__cursor"
+          aria-hidden="true"
+        >
+          <i /><i />
         </div>
 
         <!-- Portal Frame Shockwave Overlay (Paired with Mouse Wheel & Level Zoom) -->
@@ -9865,6 +9893,49 @@ function buildSourceHref(src?: {
   /* a finger scrolls the page past the map and pinches to zoom; only the drawing tools take the gesture */
   touch-action: manipulation;
   overscroll-behavior: contain;
+}
+
+/* Trailing cursor (#208). `difference` against white inverts what is under the disc, so it
+   reads on a light card and on a dark one in every theme with no colour of its own. The
+   element is the blend group: the dot and the disc are plain white inside it. The pointer's
+   own cursor goes only from the background, and only while the disc is drawn: a card, a
+   control and a drag keep theirs. The disc reaching the card stands in for the tether */
+.tux-map__viewport--cursor {
+  cursor: none;
+}
+
+.tux-map__viewport--cursor .tux-map__proximity-tether {
+  display: none;
+}
+
+.tux-map__cursor {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 19;
+  pointer-events: none;
+  mix-blend-mode: difference;
+}
+
+.tux-map__viewport--cursor > .tux-map__cursor {
+  display: block;
+}
+
+/* both are centred on the point they are moved to */
+.tux-map__cursor i {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: -20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.tux-map__cursor i:first-child {
+  width: 8px;
+  height: 8px;
+  margin: -4px;
 }
 
 .tux-map__viewport--magnified {
