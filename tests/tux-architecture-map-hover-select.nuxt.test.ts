@@ -1,8 +1,9 @@
 // @vitest-environment nuxt
 /**
- * Four interaction faults of the mounted map (#205): a hover-raised wire label
- * over the hovered card and its `+`, an empty wire popover, a selection that
- * slides the stage, and a blast radius that fades the stage without saying so.
+ * Interaction faults of the mounted map (#205): an empty wire popover, a
+ * selection that slides the stage, and a blast radius that fades the stage
+ * without saying so; and the wire labels at the ports, which a hover lights
+ * where they are (#210).
  *
  * The test DOM does no layout, so where a position matters the tests read the
  * rectangles the component computed and the inline styles it wrote.
@@ -46,108 +47,96 @@ async function mountMap(props: Record<string, unknown>) {
 
 const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-describe("TuxArchitectureMap: a hover-raised wire label and the hovered card (#205)", () => {
-  /**
-   * Where a raised label is drawn, from what the component wrote on it. At rest a label is centred
-   * on `left`/`top`. Raised beside the lit card it carries `data-clear` and three custom
-   * properties, which the stylesheet's `.tux-map__lab[data-clear]` rule turns into its position.
-   */
-  function drawnBox(el: HTMLElement, lbl: Box): Box {
-    if (!el.hasAttribute("data-clear")) return { x: lbl.x, y: lbl.y, w: lbl.w, h: lbl.h };
-    const left = Number.parseFloat(el.style.getPropertyValue("--tux-map-lab-left"));
-    const top = Number.parseFloat(el.style.getPropertyValue("--tux-map-lab-top"));
-    const shift = /translate\((-?[\d.]+)%,\s*(-?[\d.]+)%\)/.exec(el.style.getPropertyValue("--tux-map-lab-shift"))!;
-    return {
-      x: left + (Number(shift[1]) / 100) * lbl.w,
-      y: top + (Number(shift[2]) / 100) * lbl.h,
-      w: lbl.w,
-      h: lbl.h,
-    };
-  }
+describe("TuxArchitectureMap: wire labels at the ports (#210)", () => {
+  type Lbl = Box & { id: string; from: string; to: string; t1: string; t2: string; full: string; end?: string; side?: string; forced: boolean };
+  const labelEls = (wrapper: Awaited<ReturnType<typeof mountMap>>["wrapper"]) =>
+    wrapper.findAll("button.tux-map__lab").map((w) => w.element as HTMLElement);
+  /** What a label's place is made of: the inline position and the side the stylesheet hangs it by. */
+  const place = (el: HTMLElement) =>
+    [el.style.left, el.style.top, el.style.maxWidth, el.dataset.side, el.style.transform, el.getAttribute("style")].join("|");
 
-  it("reads the place of a moved label from the properties the component sets", () => {
-    const rule = /\.tux-map__lab\[data-clear\]\s*\{([^}]*)\}/.exec(STYLE)?.[1] ?? "";
-    expect(rule).toMatch(/left:\s*var\(--tux-map-lab-left\)\s*!important/);
-    expect(rule).toMatch(/top:\s*var\(--tux-map-lab-top\)\s*!important/);
-    expect(rule).toMatch(/transform:\s*var\(--tux-map-lab-shift\)/);
+  it("draws a label at both ends of a wire, at its ports and over no card", async () => {
+    const { wrapper, state } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
+    const labels = state.routedSvg.labels as Lbl[];
+    const rects = state.stageData.rects as Record<string, Box & { bound?: boolean }>;
+    // the sample's Level 2 has a technology on every relationship: a label at each end of each wire
+    const rel = labels.find((l) => l.from === "c-api" && l.to === "c-db" && l.t1)!;
+    const els = labelEls(wrapper).filter((el) => el.dataset.from === "c-api" && el.dataset.to === "c-db");
+    expect(els.map((el) => [el.dataset.end, el.textContent?.replace(/\s+/g, " ").trim()])).toEqual([
+      ["from", "Reads…"],
+      ["to", "[SQL 5432]"],
+    ]);
+    expect(rel.full).toBe("Reads & writes [SQL 5432]");
+    const ends = new Map<string, Set<string>>();
+    for (const el of labelEls(wrapper)) {
+      const key = `${el.dataset.from}>${el.dataset.to}`;
+      ends.set(key, (ends.get(key) ?? new Set()).add(el.dataset.end || ""));
+    }
+    expect([...ends.values()].filter((e) => e.has("from") && e.has("to")).length).toBeGreaterThan(15);
+    // each button is placed on the box the router kept clear: hung by the edge that faces its card
+    for (const [i, el] of labelEls(wrapper).entries()) {
+      const l = labels[i]!;
+      expect(el.dataset.from).toBe(l.from);
+      const left = l.side === "l" ? l.x + l.w : l.side === "r" ? l.x : l.x + l.w / 2;
+      expect(el.style.left).toBe(`${left}px`);
+      expect(el.style.maxWidth).toBe(`${l.w}px`);
+      for (const r of Object.values(rects)) if (!r.bound) expect(overlaps(l, r), `${l.id}`).toBe(false);
+    }
+    expect(STYLE).toMatch(/\.tux-map__lab\[data-side="r"\]\s*\{\s*transform:\s*translate\(0,\s*-50%\)/);
+    expect(STYLE).toMatch(/\.tux-map__lab\[data-side="l"\]\s*\{\s*transform:\s*translate\(-100%,\s*-50%\)/);
   });
 
-  it("draws no raised label over the card the pointer is on, on a level with long labels", async () => {
+  it("names each label with the whole text, which the short text drawn leaves out", async () => {
+    const { wrapper } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
+    const [verb, tech] = labelEls(wrapper).filter((el) => el.dataset.from === "p-users" && el.dataset.to === "c-edge");
+    expect(verb!.textContent?.trim()).toBe("Uses…");
+    expect(verb!.getAttribute("aria-label")).toBe("Inspect wire Uses portal & API [HTTPS 443]");
+    expect(verb!.getAttribute("title")).toBe("Uses portal & API [HTTPS 443]");
+    expect(verb!.hasAttribute("tabindex")).toBe(false);
+    expect(tech!.getAttribute("aria-label")).toBe("Inspect wire Uses portal & API [HTTPS 443], at its target");
+    // the technology label opens the same popover: it is clickable, and out of the Tab order
+    expect(tech!.getAttribute("tabindex")).toBe("-1");
+    const planned = labelEls(wrapper).find((el) => el.dataset.from === "c-workers" && el.dataset.to === "c-sandbox" && el.dataset.end === "from");
+    expect(planned).toBeUndefined();
+    const { wrapper: shown } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialShowPlanned: true });
+    const p = labelEls(shown).find((el) => el.dataset.from === "c-workers" && el.dataset.to === "c-sandbox" && el.dataset.end === "from")!;
+    expect(p.textContent?.trim()).toBe("Dispatche…");
+    expect(p.getAttribute("aria-label")).toBe("Inspect wire Dispatches plugins [gRPC] (planned)");
+    expect(p.hasAttribute("data-planned")).toBe(true);
+  });
+
+  it("lights a hovered card's labels where they are: emphasis, and no move", async () => {
     const { wrapper, state, hover } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
-    const labelById = new Map<string, Box & { from: string; to: string }>(
-      state.routedSvg.labels.map((l: Box & { id: string }) => [l.id, l]),
-    );
+    const els = labelEls(wrapper);
+    const atRest = els.map(place);
     const cards = state.stageData.els.map((e: { id: string }) => e.id) as string[];
-    let raised = 0;
-    const over: string[] = [];
+    let lit = 0;
+    let shownHidden = 0;
     for (const id of cards) {
       await hover(id);
-      const rect = state.stageData.rects[id] as Box;
-      const labs = wrapper.findAll(".tux-map__lab.tux-map__lab--on");
-      for (const lab of labs) {
-        const el = lab.element as HTMLElement;
-        const lbl = [...labelById.values()].find(
-          (l) => l.from === el.dataset.from && l.to === el.dataset.to,
-        )!;
-        raised++;
-        if (overlaps(drawnBox(el, lbl), rect)) over.push(`${id}: ${el.textContent?.trim()}`);
+      for (const [i, el] of els.entries()) {
+        const mine = el.dataset.from === id || el.dataset.to === id;
+        expect(el.classList.contains("tux-map__lab--on"), `${id}: ${el.dataset.from} > ${el.dataset.to}`).toBe(mine);
+        expect(place(el), `${id}: ${el.dataset.from} > ${el.dataset.to}`).toBe(atRest[i]);
+        if (mine) lit++;
+        if (mine && el.dataset.forced === "1") shownHidden++;
       }
     }
-    // the sample's Level 2 has labels that land on their own cards: without them this proves nothing
-    expect(raised).toBeGreaterThan(10);
-    const restingOverEnd = state.routedSvg.labels.filter(
-      (l: Box & { from: string; to: string }) =>
-        [l.from, l.to].some((end) => state.stageData.rects[end] && overlaps(l, state.stageData.rects[end])),
-    );
-    expect(restingOverEnd.length).toBeGreaterThan(0);
-    expect(over).toEqual([]);
-  });
-
-  it("puts a label back where its wire is when the pointer leaves the card", async () => {
-    const { wrapper, state, hover } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
-    const moved = (state.routedSvg.labels as (Box & { from: string; to: string })[]).find((l) =>
-      [l.from, l.to].some((end) => state.stageData.rects[end] && overlaps(l, state.stageData.rects[end])),
-    )!;
-    const end = overlaps(moved, state.stageData.rects[moved.from] ?? { x: -1, y: -1, w: 0, h: 0 }) ? moved.from : moved.to;
-    await hover(end);
-    const sel = `.tux-map__lab[data-from="${moved.from}"][data-to="${moved.to}"]`;
-    const lab = wrapper.find(sel).element as HTMLElement;
-    expect(lab.hasAttribute("data-clear")).toBe(true);
+    expect(lit).toBeGreaterThan(40);
+    // a label hidden at rest is drawn while its card is lit, at the port it was kept at
+    expect(shownHidden).toBeGreaterThan(0);
     wrapper.find(".tux-map__stage").element.dispatchEvent(new window.MouseEvent("pointerleave"));
     await nextTick();
-    expect(lab.hasAttribute("data-clear")).toBe(false);
-    expect(lab.style.getPropertyValue("--tux-map-lab-left")).toBe("");
-    expect(lab.classList.contains("tux-map__lab--on")).toBe(false);
-    expect(lab.style.left).toBe(`${moved.x + moved.w / 2}px`);
+    expect(els.filter((el) => el.classList.contains("tux-map__lab--on"))).toEqual([]);
+    expect(els.map(place)).toEqual(atRest);
+    // the stylesheet moves no label: no rule sets a label's left, top or transform but by its side
+    expect(STYLE).not.toMatch(/data-clear|--tux-map-lab-left/);
+    const on = /\.tux-map__lab--on\s*\{([^}]*)\}/.exec(STYLE)?.[1] ?? "";
+    expect(on).toMatch(/border-color:\s*var\(--brand-primary\)/);
+    expect(on).not.toMatch(/left|top|transform/);
   });
 
-  it("clears the card as it is drawn: hovered, a card grows to show all its text", async () => {
-    const { wrapper, state, card, hover } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
-    const rects = state.stageData.rects as Record<string, Box>;
-    // a label that rests clear of its card, within 90 px below it
-    const below = (state.routedSvg.labels as (Box & { from: string; to: string })[])
-      .flatMap((l) => [l.from, l.to].map((end) => ({ l, end, r: rects[end] })))
-      .find(
-        ({ l, r }) =>
-          r && l.y >= r.y + r.h + 8 && l.y < r.y + r.h + 90 && l.x < r.x + r.w && l.x + l.w > r.x,
-      )!;
-    expect(below).toBeTruthy();
-    const sel = `.tux-map__lab[data-from="${below.l.from}"][data-to="${below.l.to}"]`;
-    const lab = wrapper.find(sel).element as HTMLElement;
-    await hover(below.end);
-    expect(lab.classList.contains("tux-map__lab--on")).toBe(true);
-    expect(lab.hasAttribute("data-clear")).toBe(false);
-    wrapper.find(".tux-map__stage").element.dispatchEvent(new window.MouseEvent("pointerleave"));
-    await nextTick();
-    // the test DOM lays nothing out: say how tall the hovered card is drawn
-    const grown = below.r.h + 120;
-    Object.defineProperty(card(below.end), "offsetHeight", { configurable: true, value: grown });
-    await hover(below.end);
-    expect(lab.hasAttribute("data-clear")).toBe(true);
-    expect(overlaps(drawnBox(lab, below.l), { ...below.r, h: grown })).toBe(false);
-  });
-
-  it("stacks every card's + above every wire label, raised or under the pointer", () => {
+  it("stacks every card's + above every wire label, lit or under the pointer", () => {
     const z = (selector: string): number[] => {
       const out: number[] = [];
       const re = /([^{}]+)\{([^{}]*)\}/g;

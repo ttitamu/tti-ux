@@ -141,10 +141,9 @@ function openedRels(view: LiftedView, activeId: string): TuxMapLevelRel[] {
 }
 
 /**
- * Thirty wires between the view's first eight cards, every one labelled on two lines: the most
- * the router places labels for (above 30 wires it hides them and searches for no spot), crowded
- * so that most labels find no free spot and fall back to the least-covered one, on a view that
- * grows in cards.
+ * Thirty wires between the view's first eight cards, every one labelled and with a technology:
+ * sixty port labels on a few crowded sides, so that many find no free spot and are hidden at rest,
+ * on a view that grows in cards.
  */
 function crowdedLabelRels(view: LiftedView): TuxMapLevelRel[] {
   const ids = view.kids.slice(0, 8).map((k) => k.id);
