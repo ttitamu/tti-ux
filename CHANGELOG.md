@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: the trailing cursor is drawn under the cards, in its own colour per theme, and trails faster (#256)
+
+- **It no longer covers the card it rests on.** The cursor was a child of the viewport after the stage, at `z-index: 19` with `mix-blend-mode: difference`, so it was painted over the whole stage and inverted the card under it. It is now a child of the stage, after the boundaries, at `z-index: 0`: over the canvas and the boundaries' fills, under the cards, wires, labels, the proximity frame and every control. Resting on a card it is opaque, the card covers its middle and its 6 px of padding show as a ring around the card. The stage's scale and pan are undone on the element, so it is still placed in the viewport's px and keeps its size at every zoom.
+- **A boundary is no longer a stacking context** (`.tux-map__bound` drops `z-index: 0`; `.tux-map__bound-label` takes `z-index: 1`), so the cursor goes over a region's opaque fill and under its label.
+- **Its colour is `--tux-map-cursor`**, a new custom property on `.tux-map`: `--brand-primary` in the light themes (light, field-sunlight, high contrast), `--brand-accent` under `[data-theme="tti-dark"]` (dark and soft dark), so the colour-vision palettes' remapping of `--brand-*` carries to it. On the canvas (`--surface-sunken`) it holds 13:1 in light, 13.7:1 in high contrast, 9.5:1 in dark, 9.0:1 in soft dark, and 4.5:1 or more in every colour-vision palette (1.4.11). The dot on the pointer takes the same colour.
+- **It trails faster.** The spring is still critically damped; its rate goes from 18 to 26 a second (`TUX_MAP_CURSOR_OMEGA` in the cursor's composable, beside `TUX_MAP_CURSOR_DISC`), so a 60 px move settles in about 0.37 s instead of 0.52 s. Reduced motion still draws no cursor at all.
+- Tests: `tests/tux-architecture-map-cursor.nuxt.test.ts` (its place in the stage's DOM order and the z-index of every layer over it, the undone scale and pan, the opaque ring, the faster settle), `tests/tux-architecture-map-fade.test.ts` (the token in each of the 25 theme and palette combinations, 3:1 or more on the canvas, no raw colour or blend) and `packages/diagrams/tests/map-cursor.test.ts` (the spring against #208's rate).
+
+**To check when upgrading:** a host stylesheet that styled `.tux-map__cursor` as a child of `.tux-map__viewport` (it is now inside `.tux-map__stage`), relied on its blend mode, or set a `z-index` on `.tux-map__bound`. Set `--tux-map-cursor` on `.tux-map` to give the cursor another colour; keep it at 3:1 on `--surface-sunken`.
+
 ## [3.13.0] — 2026-11-13
 
 The architecture map's 3.13 fixes, its 3.14 enhancements and the first phase of its performance work (#221), in one release. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.12.0:
