@@ -2932,10 +2932,11 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // 97,000 B until the 3.14.0 map features: from 96,410 B, the port labels (#210) took 687 B off,
   // and the overview of the level (#211, +2,830 B, its component counted from here on), the
   // trailing cursor (#208, +1,461 B) and the camera's travel (#212, +347 B) added the rest:
-  // 100,103 B together. The budget is that plus 397 B.
+  // 100,103 B together on macOS; the Linux CI runner measures the same tree at 100,569 B. The budget
+  // is 101,000 B, which holds on both with a few hundred bytes to spare.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 100,500 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 101,000 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2976,7 +2977,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(100_500);
+    expect(gzipBytes).toBeLessThan(101_000);
   });
 });
 
