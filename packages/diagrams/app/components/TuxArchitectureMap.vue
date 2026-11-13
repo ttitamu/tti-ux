@@ -8900,6 +8900,16 @@ function buildSourceHref(src?: {
      canvas in the high-contrast theme (3.4:1), where it is the card's edge */
   --tux-map-faded-surface: color-mix(in srgb, var(--surface-raised) 25%, var(--surface-sunken));
   --tux-map-faded-border: color-mix(in srgb, var(--surface-border) 75%, var(--surface-sunken));
+  /* and hatched: diagonal lines under its text, so "out of the highlight" shows by a pattern and not
+     by a shade alone (1.4.1). A line is the faded surface with 14% of --text-muted, 1.23:1 to 1.29:1
+     on the surface in the four themes; the faded text is --text-secondary, which holds 7:1 or more
+     on a line (7.6:1 in tti) as well as between them */
+  --tux-map-faded-hatch: color-mix(in srgb, var(--text-muted) 14%, var(--tux-map-faded-surface));
+  --tux-map-faded-pattern: repeating-linear-gradient(
+    -45deg,
+    var(--tux-map-faded-hatch) 0 1.5px,
+    var(--tux-map-faded-surface) 1.5px 7px
+  );
   /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
   --tux-map-target: 44px;
 }
@@ -9667,7 +9677,8 @@ function buildSourceHref(src?: {
 
 /* A card the blast radius does not reach (.tux-map__stage--dim), drawn as the card is (#229) */
 .tux-map__swatch--faded {
-  background: var(--tux-map-faded-surface);
+  background-color: var(--tux-map-faded-surface);
+  background-image: var(--tux-map-faded-pattern);
   border-color: var(--tux-map-faded-border);
 }
 
@@ -10932,17 +10943,15 @@ function buildSourceHref(src?: {
 /* A card the highlight does not reach steps back by its colours, not by fading (#229). At opacity
    0.28 the wires behind it showed through, its text fell to about 2:1 and every faded card was a
    layer of its own to paint. Opaque, it hides the wires under it, as a lit card does; its kind still
-   shows by its icon and its shape. Its text takes the colours of a faded wire label (#205) */
+   shows by its icon and its shape. It is hatched (--tux-map-faded-pattern) and its text is one step
+   quieter than a resting card's, --text-secondary throughout; a planned card is hatched the same and
+   keeps its dashes. A chip keeps a plain fill, so its small text never lies on a line */
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) {
   z-index: 1;
-  background: var(--tux-map-faded-surface);
+  background-color: var(--tux-map-faded-surface);
+  background-image: var(--tux-map-faded-pattern);
   border-color: var(--tux-map-faded-border);
   box-shadow: none;
-}
-
-/* a planned card has no surface: it lies on the canvas colour, opaque, and keeps its dashes */
-.tux-map__stage--dim .tux-map__el--st-planned:not(.tux-map__el--lit) {
-  background: var(--surface-sunken);
 }
 
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-nm {
@@ -10955,7 +10964,7 @@ function buildSourceHref(src?: {
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-runs,
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ds,
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ft {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   opacity: 1;
 }
 

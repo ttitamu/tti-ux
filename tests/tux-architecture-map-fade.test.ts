@@ -4,8 +4,9 @@
  * At opacity 0.28 a faded card let the wires behind it show through (they are drawn at 0.6 in the
  * same layer), its text fell to about 2:1 on the canvas, and each card was its own opacity group
  * to paint. A faded card now keeps an opaque surface mixed toward the canvas colour, a quieter
- * border and the text colours a faded wire label takes since #205. The legend's swatch and the
- * overview's faded cards follow the same rule.
+ * border, diagonal hatching under its text so the fade shows by a pattern and not by a shade alone
+ * (1.4.1), and --text-secondary for all its text, which holds 7:1 on a hatch line as well as between
+ * them. The legend's swatch is hatched the same; the overview's faded cards fade by colour.
  *
  * Both halves read the source: the rules from the component's stylesheet, the colours from the
  * TUX token files of the four themes, with `var()` and `color-mix(in srgb, …)` worked out here.
@@ -151,19 +152,26 @@ describe("TuxArchitectureMap: a faded card fades by colour, not by opacity (#229
 
   it("keeps the card's surface opaque, mixed toward the canvas, and the planned card dashed", () => {
     const card = declarationsOf(MAP, FADED);
-    expect(property(card, "background")).toBe("var(--tux-map-faded-surface)");
+    expect(property(card, "background-color")).toBe("var(--tux-map-faded-surface)");
+    expect(property(card, "background-image")).toBe("var(--tux-map-faded-pattern)");
     expect(property(card, "border-color")).toBe("var(--tux-map-faded-border)");
     // the canvas is the viewport's own colour
     expect(property(declarationsOf(MAP, ".tux-map__viewport"), "background")).toBe("var(--surface-sunken)");
     expect(MAP_VARS["--tux-map-faded-surface"]).toMatch(/^color-mix\(in srgb, var\(--surface-raised\) [\d.]+%, var\(--surface-sunken\)\)$/);
-    // a planned card has no surface of its own: it lies on the canvas colour, opaque, and keeps its dashes
-    const planned = declarationsOf(MAP, ".tux-map__stage--dim .tux-map__el--st-planned:not(.tux-map__el--lit)");
-    expect(property(planned, "background")).toBe("var(--surface-sunken)");
-    expect(planned).not.toMatch(/border-style|border\s*:/);
-    expect(property(declarationsOf(MAP, ".tux-map__el--st-planned"), "border")).toMatch(/dashed/);
+    // the hatch: opaque stripes of the faded surface and a line colour mixed into it, never a gap
+    expect(MAP_VARS["--tux-map-faded-hatch"]).toMatch(/^color-mix\(in srgb, var\(--text-muted\) [\d.]+%, var\(--tux-map-faded-surface\)\)$/);
+    const pattern = MAP_VARS["--tux-map-faded-pattern"]!.replace(/\s+/g, " ");
+    expect(pattern).toMatch(/^repeating-linear-gradient\( ?-?\d+deg, var\(--tux-map-faded-hatch\) 0 [\d.]+px, var\(--tux-map-faded-surface\) [\d.]+px [\d.]+px ?\)$/);
+    expect(pattern).not.toMatch(/transparent|rgba\(/);
+    // a planned card is hatched as the others are (no rule of its own resets the pattern) and keeps its dashes
+    expect(declarationsOf(MAP, ".tux-map__stage--dim .tux-map__el--st-planned:not(.tux-map__el--lit)")).toBe("");
+    const plannedOwn = declarationsOf(MAP, ".tux-map__el--st-planned");
+    expect(property(plannedOwn, "border")).toMatch(/dashed/);
+    expect(plannedOwn).not.toMatch(/background-(image|color)\s*:/);
     // the key draws the card it names
     const swatch = declarationsOf(MAP, ".tux-map__swatch--faded");
-    expect(property(swatch, "background")).toBe("var(--tux-map-faded-surface)");
+    expect(property(swatch, "background-color")).toBe("var(--tux-map-faded-surface)");
+    expect(property(swatch, "background-image")).toBe("var(--tux-map-faded-pattern)");
     expect(property(swatch, "border-color")).toBe("var(--tux-map-faded-border)");
     expect(property(declarationsOf(MINIMAP, ".tux-map__minimap-card--faded"), "fill")).toMatch(/^color-mix\(in srgb, /);
   });
@@ -172,24 +180,31 @@ describe("TuxArchitectureMap: a faded card fades by colour, not by opacity (#229
     const vars = THEMES[theme]!;
     const c = (v: string) => colour(v, vars, MAP_VARS);
     let surface: RGB;
+    let hatch: RGB;
     let canvas: RGB;
     beforeEach(() => {
       surface = c("var(--tux-map-faded-surface)");
+      hatch = c("var(--tux-map-faded-hatch)");
       canvas = c("var(--surface-sunken)");
     });
 
-    it("holds its text at 7:1 or more on the faded surface", () => {
+    it("holds its text at 7:1 or more on the faded surface and on a hatch line", () => {
       const name = property(declarationsOf(MAP, `${FADED} .tux-map__el-nm`), "color")!;
       const lines = property(declarationsOf(MAP, `${FADED} .tux-map__el-ty`), "color")!;
       expect(name).toBe("var(--text-secondary)");
-      expect(lines).toBe("var(--text-muted)");
-      expect(ratio(c(name), surface)).toBeGreaterThanOrEqual(7);
-      expect(ratio(c(lines), surface)).toBeGreaterThanOrEqual(7);
-      // a chip's text on its own faded fill
+      expect(lines).toBe("var(--text-secondary)");
+      for (const ground of [surface, hatch]) {
+        expect(ratio(c(name), ground)).toBeGreaterThanOrEqual(7);
+        expect(ratio(c(lines), ground)).toBeGreaterThanOrEqual(7);
+      }
+      // a chip's text on its own plain fill, which covers the hatch
       const chip = declarationsOf(MAP, `${FADED} .tux-map__chip`);
       expect(ratio(c(property(chip, "color")!), c(property(chip, "background")!))).toBeGreaterThanOrEqual(7);
-      // a planned card's text lies on the canvas
-      expect(ratio(c(lines), canvas)).toBeGreaterThanOrEqual(7);
+    });
+
+    it("draws hatch lines that show (1.2:1 or more on the surface) and stay quieter than the text", () => {
+      expect(ratio(hatch, surface)).toBeGreaterThanOrEqual(1.2);
+      expect(ratio(hatch, surface)).toBeLessThan(1.5);
     });
 
     it("steps back from a resting card: a surface nearer the canvas, a border no louder", () => {
