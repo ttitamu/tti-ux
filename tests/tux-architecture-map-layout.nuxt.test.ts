@@ -302,8 +302,8 @@ describe("TuxArchitectureMap: magnify says how much larger than Fit (#205)", () 
     await nextTick();
     const vp = wrapper.find(".tux-map__viewport");
     const full = Math.ceil(state.stageData.height * state.stageScale) + 2;
-    // the height the component asks for includes the viewport's border
-    expect(state.computedViewportHeight).toContain(`min(${full}px, 75vh)`);
+    // magnified, the canvas keeps the held height (#271): a zoom never resizes its box
+    expect(state.computedViewportHeight).toBe(`${state.heldFitHeight}px`);
     expect(declarations(".tux-map__viewport")[0]).toMatch(/box-sizing:\s*border-box/);
     const measure = async (h: number) => {
       Object.defineProperty(vp.element, "offsetHeight", { value: h, configurable: true });

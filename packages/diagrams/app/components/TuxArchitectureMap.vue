@@ -3621,12 +3621,11 @@ const computedViewportHeight = computed<string>(() => {
   if (props.height && props.height !== "auto") {
     return props.height;
   }
-  const fitH = heldFitHeight.value;
-  if (!isMagnified.value) return `${fitH}px`;
-  // magnified: tall enough to read, never taller than most of the screen; the rest scrolls.
-  // The 2px are the viewport's border: without them a viewport as tall as the diagram still
-  // scrolled by those 2px, and showed a scrollbar thumb as tall as itself (#205)
-  return `max(${fitH}px, min(${Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER}px, 75vh))`;
+  // Magnified or not, the canvas keeps its size (#271): a zoom changes what is in it, never its box.
+  // It grew to the diagram's height (up to 75vh) when magnified; with a continuous zoom that moved
+  // the page under every step of a pinch, and the centring offset caught up a frame after the
+  // resize was measured, so the point under the pointer slid and the stage jumped.
+  return `${heldFitHeight.value}px`;
 });
 
 const VIEWPORT_BORDER = 2;
@@ -3646,10 +3645,8 @@ const magnifiedShowsFullHeight = computed<boolean>(
  * animate it, keep their own origin.
  */
 const viewportInnerHeight = computed<number>(() => {
-  const outer =
-    !isMagnified.value && (!props.height || props.height === "auto")
-      ? heldFitHeight.value
-      : viewportOuterHeight.value;
+  // without a host `height` the box is the held height, magnified or not (#271): known here, not measured
+  const outer = !props.height || props.height === "auto" ? heldFitHeight.value : viewportOuterHeight.value;
   return Math.max(0, outer - VIEWPORT_BORDER);
 });
 const stageOffsetY = computed<number>(() => {

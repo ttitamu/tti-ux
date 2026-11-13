@@ -156,15 +156,19 @@ describe("TuxArchitectureMap: the canvas keeps its size from level to level (#26
     }
   });
 
-  it("magnified, asks for the held height at least, and the diagram's own height up to 75vh", async () => {
+  // It asked for the diagram's own height up to 75vh until #271: with a continuous zoom that resized
+  // the canvas on every step of a pinch, moved the page, and let the centring catch up a frame late.
+  it("magnified, keeps the held height: a zoom changes what is in the canvas, not its box (#271)", async () => {
     const { wrapper, state, viewport, go } = await mountMap();
     const held = viewport().style.height;
     await go(3);
-    await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
-    await nextTick();
-    expect(state.isMagnified).toBe(true);
-    const full = Math.ceil(state.stageData.height * state.stageScale) + 2;
-    expect(state.computedViewportHeight).toBe(`max(${held}, min(${full}px, 75vh))`);
+    for (let i = 0; i < 3; i++) {
+      await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+      await nextTick();
+      expect(state.isMagnified).toBe(true);
+      expect(state.computedViewportHeight).toBe(held);
+      expect(viewport().style.height).toBe(held);
+    }
   });
 });
 
