@@ -8,7 +8,7 @@ events it emits, its `v-model` bindings, its slots, the members it exposes on a 
 ref, and the types its file exports. Sorted by name. Everything else in the component is
 internal.
 
-## Props (42)
+## Props (43)
 
 - `annotations?: boolean` (default: `false`)
 - `ariaLabel?: string` (default: `"Interactive multi-level architecture map"`)
@@ -16,6 +16,7 @@ internal.
 - `blastIntent?: TuxMapBlastIntent` (default: `undefined`)
 - `blastSeeds?: string[]` (default: `undefined`)
 - `caption?: string` (default: `""`)
+- `cursor?: boolean` (default: `false`)
 - `denseListThreshold?: number` (default: `40`)
 - `edges?: TuxMapEdge[]` (default: `() => []`)
 - `eyebrow?: string` (default: `"TUX · MODULAR ARCHITECTURE MAP (M.A.P.)"`)

@@ -232,11 +232,19 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(level2Routed.wires.length).toBeGreaterThan(5);
     expect(level2Routed.wires[0]!.d.startsWith("M")).toBe(true);
 
-    // Verify that all wire labels (both always-visible and hover-forced) do not overlap each other
-    for (let i = 0; i < level2Routed.labels.length; i++) {
-      const l1 = level2Routed.labels[i]!;
-      for (let j = i + 1; j < level2Routed.labels.length; j++) {
-        const l2 = level2Routed.labels[j]!;
+    // No label lies over a card, and no drawn label over another. A label hidden at rest keeps its
+    // place at its port, under the label that holds the spot, until its card is lit (#210)
+    for (const l of level2Routed.labels) {
+      for (const r of Object.values(rects)) {
+        expect(l.x < r.x + r.w && l.x + l.w > r.x && l.y < r.y + r.h && l.y + l.h > r.y, l.id).toBe(false);
+      }
+    }
+    const drawnLabels = level2Routed.labels.filter((l) => !l.forced);
+    expect(drawnLabels.length).toBeGreaterThan(20);
+    for (let i = 0; i < drawnLabels.length; i++) {
+      const l1 = drawnLabels[i]!;
+      for (let j = i + 1; j < drawnLabels.length; j++) {
+        const l2 = drawnLabels[j]!;
         const overlapX = Math.max(0, Math.min(l1.x + l1.w, l2.x + l2.w) - Math.max(l1.x, l2.x));
         const overlapY = Math.max(0, Math.min(l1.y + l1.h, l2.y + l2.h) - Math.max(l1.y, l2.y));
         expect(overlapX * overlapY).toBe(0);
@@ -2921,11 +2929,13 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
   // 96,000 B until #205: drag-to-pan, the cards' row counts and the toolbar's fixed order took the
   // payload from 94,496 B to 96,410 B, and the budget went up by 1,000 B with them.
-  // 97,000 B until #211: the overview of the level (its component, its geometry and timing, its
-  // styles) took it from 96,410 B to 99,240 B, and the budget went up by 2,300 B, to what that needs.
+  // 97,000 B until the 3.14.0 map features: from 96,410 B, the port labels (#210) took 687 B off,
+  // and the overview of the level (#211, +2,830 B, its component counted from here on), the
+  // trailing cursor (#208, +1,461 B) and the camera's travel (#212, +347 B) added the rest:
+  // 100,103 B together. The budget is that plus 397 B.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 99,300 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 100,500 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2966,7 +2976,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(99_300);
+    expect(gzipBytes).toBeLessThan(100_500);
   });
 });
 
