@@ -517,8 +517,8 @@ describe("TuxArchitectureMap: a move to another card on the level (#212)", () =>
     const end = seen[seen.length - 1]!;
     const dist = Math.hypot(end[0] - start.left, end[1] - start.top);
     expect(dist).toBeGreaterThan(0);
-    // as long as the rule says, in 16ms frames
-    expect(ran).toBe(Math.ceil(travelDuration(dist) / 16));
+    // as long as the rule says, in 16ms frames, the first of which starts the clock
+    expect(ran).toBe(Math.ceil(travelDuration(dist) / 16) + 1);
     // ease-out: the first frame covers more ground than the last
     const stepLen = (i: number) => Math.hypot(seen[i]![0] - seen[i - 1]![0], seen[i]![1] - seen[i - 1]![1]);
     expect(stepLen(1)).toBeGreaterThan(stepLen(seen.length - 1));
@@ -590,7 +590,9 @@ describe("TuxArchitectureMap: a move to another card on the level (#212)", () =>
     await settle();
     f.run(16);
     f.run(16);
+    f.run(16);
     expect([m.scroll.left, m.scroll.top]).not.toEqual(target);
+    expect(m.scroll.left + m.scroll.top).toBeGreaterThan(0);
     expect(f.pending()).toBe(1);
     key(m.root, "ArrowDown");
     expect([m.scroll.left, m.scroll.top]).toEqual(target);

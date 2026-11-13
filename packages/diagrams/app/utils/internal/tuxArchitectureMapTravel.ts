@@ -124,7 +124,9 @@ export function flipStart(
 /**
  * Runs `step` with the eased progress of a travel on each animation frame for `ms`, and
  * returns what ends it. Ending it early is not stopping halfway: `step(1)` runs, once,
- * so the view is on its target whether the travel ran out or was cut short.
+ * so the view is on its target whether the travel ran out or was cut short. The clock starts
+ * on the first frame, not on the call: the work a click sets off before that frame (a selection
+ * drawn, a panel opened) is not time the travel has spent, and would be its first third gone.
  */
 export function startTravel(
   ms: number,
@@ -133,7 +135,7 @@ export function startTravel(
   caf: (id: number) => void = (id) => cancelAnimationFrame(id),
   now: () => number = () => performance.now(),
 ): () => void {
-  const t0 = now();
+  let t0: number | undefined;
   let over = false;
   let id = 0;
   const end = () => {
@@ -144,7 +146,7 @@ export function startTravel(
   };
   const tick = () => {
     if (over) return;
-    const t = (now() - t0) / ms;
+    const t = (now() - (t0 ??= now())) / ms;
     if (t >= 1) return end();
     step(travelEase(t));
     id = raf(tick);

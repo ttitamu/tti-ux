@@ -254,9 +254,12 @@ describe("ending a travel (#212)", () => {
     const c = clock();
     startTravel(400, (u) => c.seen.push(u), c.raf, (id) => c.caf(id), c.now);
     expect(c.seen).toEqual([]);
+    // the clock starts on the first frame, however long after the call that frame comes
+    c.frame(90);
+    expect(c.seen).toEqual([0]);
     c.frame(100);
     c.frame(100);
-    expect(c.seen).toEqual([travelEase(0.25), travelEase(0.5)]);
+    expect(c.seen).toEqual([0, travelEase(0.25), travelEase(0.5)]);
     c.frame(250);
     expect(c.seen[c.seen.length - 1]).toBe(1);
     expect(c.seen.filter((u) => u === 1)).toHaveLength(1);
@@ -267,15 +270,16 @@ describe("ending a travel (#212)", () => {
   it("cut short, lands on the target at once: one last step of 1 and no frame after it", () => {
     const c = clock();
     const end = startTravel(400, (u) => c.seen.push(u), c.raf, (id) => c.caf(id), c.now);
+    c.frame(16);
     c.frame(100);
     end();
-    expect(c.seen).toEqual([travelEase(0.25), 1]);
+    expect(c.seen).toEqual([0, travelEase(0.25), 1]);
     expect(c.pending()).toBe(0);
     expect(c.cancelled).toHaveLength(1);
     // ending it again, or a frame that was already on its way, does nothing
     end();
     c.frame(16);
-    expect(c.seen).toEqual([travelEase(0.25), 1]);
+    expect(c.seen).toEqual([0, travelEase(0.25), 1]);
   });
 
   it("cut short before its first frame, still lands on the target", () => {
