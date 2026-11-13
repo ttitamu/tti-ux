@@ -7413,6 +7413,19 @@ function buildSourceHref(src?: {
             </span>
           </div>
 
+          <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only.
+               In the stage, after the boundaries and under everything else (#256); the stage's scale
+               and pan are undone on it, so it is placed in the viewport's content px -->
+          <div
+            v-if="cursorOn"
+            ref="cursorRef"
+            class="tux-map__cursor"
+            :style="{ transform: `scale(${1 / stageScale}) translateX(${-panX}px)` }"
+            aria-hidden="true"
+          >
+            <i /><i />
+          </div>
+
           <!-- Layer 1 (z-index: 1): Base Orthogonal Wires SVG -->
           <svg
             class="tux-map__wires"
@@ -7926,16 +7939,6 @@ function buildSourceHref(src?: {
               fill="var(--status-critical)"
             />
           </svg>
-        </div>
-
-        <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only -->
-        <div
-          v-if="cursorOn"
-          ref="cursorRef"
-          class="tux-map__cursor"
-          aria-hidden="true"
-        >
-          <i /><i />
         </div>
 
         <!-- Portal Frame Shockwave Overlay (Paired with Mouse Wheel & Level Zoom) -->
@@ -8932,6 +8935,15 @@ function buildSourceHref(src?: {
   );
   /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
   --tux-map-target: 44px;
+  /* The trailing cursor's colour (#256): 3:1 or more on the canvas (--surface-sunken) in every
+     theme and colour-vision palette (1.4.11), 4.5:1 at the least (high contrast, Okabe-Ito).
+     The light themes take the brand colour; the dark ones the accent, below */
+  --tux-map-cursor: var(--brand-primary);
+}
+
+/* dark and soft dark: the accent, as the dark map's own pointer is (7.3:1 or more on the canvas) */
+[data-theme="tti-dark"] .tux-map {
+  --tux-map-cursor: var(--brand-accent);
 }
 
 [data-vision-comfort="field-sunlight"] .tux-map {
@@ -9886,11 +9898,12 @@ function buildSourceHref(src?: {
   overscroll-behavior: contain;
 }
 
-/* Trailing cursor (#208). `difference` against white inverts what is under the disc, so it
-   reads on a light card and on a dark one in every theme with no colour of its own. The
-   element is the blend group: the dot and the disc are plain white inside it. The pointer's
-   own cursor goes only from the background, and only while the disc is drawn: a card, a
-   control and a drag keep theirs. The disc reaching the card stands in for the tether */
+/* Trailing cursor (#208). It is a child of the stage, after the boundaries: in the stage's
+   stacking context at z-index 0, over the canvas and the boundaries' fills and under their
+   labels, the wires, the cards and every control (#256). Resting on a card, the card covers
+   it and its padding shows as a ring of --tux-map-cursor around the card. The pointer's own
+   cursor goes only from the background, and only while the disc is drawn: a card, a control
+   and a drag keep theirs. The disc reaching the card stands in for the tether */
 .tux-map__viewport--cursor {
   cursor: none;
 }
@@ -9904,12 +9917,12 @@ function buildSourceHref(src?: {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 19;
+  z-index: 0;
+  transform-origin: 0 0;
   pointer-events: none;
-  mix-blend-mode: difference;
 }
 
-.tux-map__viewport--cursor > .tux-map__cursor {
+.tux-map__viewport--cursor .tux-map__cursor {
   display: block;
 }
 
@@ -9920,7 +9933,7 @@ function buildSourceHref(src?: {
   height: 40px;
   margin: -20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--tux-map-cursor);
 }
 
 .tux-map__cursor i:first-child {
@@ -10091,10 +10104,10 @@ function buildSourceHref(src?: {
   }
 }
 
-/* Boundaries & Regions */
+/* Boundaries & Regions. A boundary is no stacking context of its own: its fill is under the
+   trailing cursor and its label over it (#256) */
 .tux-map__bound {
   position: absolute;
-  z-index: 0;
   border: 1.5px dashed var(--text-muted);
   border-radius: 12px;
   background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
@@ -10102,6 +10115,7 @@ function buildSourceHref(src?: {
 
 .tux-map__bound-label {
   position: absolute;
+  z-index: 1;
   left: 14px;
   top: 8px;
   font-size: 12px;
