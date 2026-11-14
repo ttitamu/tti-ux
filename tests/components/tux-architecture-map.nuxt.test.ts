@@ -492,13 +492,14 @@ describe("TuxArchitectureMap Component", () => {
     });
     const scale = () => Number(/scale\(([\d.]+)\)/.exec(wrapper.find(".tux-map__stage").attributes("style") || "")![1]);
     const fit = scale();
-    expect(wrapper.find(".tux-map__magnify-fit").text()).toBe("Fit");
+    // the size is the canvas zoom's readout since #271, 100% at Fit; Fit is an icon button
+    expect(wrapper.find("[data-zoom-percent]").text()).toBe("100%");
     await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
     await nextTick();
     expect(scale()).toBeGreaterThan(fit);
     expect(wrapper.find(".tux-map__viewport").classes()).toContain("tux-map__viewport--magnified");
     expect(wrapper.find(".tux-map__sizer").exists()).toBe(true);
-    expect(wrapper.find(".tux-map__magnify-fit").text()).toMatch(/^\d+%$/);
+    expect(wrapper.find("[data-zoom-percent]").text()).toMatch(/^\d+%$/);
     await wrapper.find(".tux-map__magnify-fit").trigger("click");
     await nextTick();
     expect(scale()).toBe(fit);
@@ -705,7 +706,9 @@ describe("TuxArchitectureMap Component", () => {
     const off = await mountSuspended(TuxArchitectureMap, {
       props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, wheelZoom: false },
     });
-    expect(off.find(".tux-map__hint").text()).toContain("hold Ctrl and scroll");
+    // Ctrl + wheel magnifies the canvas since #271: without the plain wheel, a level is a double-click away
+    expect(off.find(".tux-map__hint").text()).toContain("double-click a card");
+    expect(off.find(".tux-map__hint").text()).toContain("Ctrl+scroll or pinch magnifies the canvas");
     expect(off.find(".tux-map__hint").text()).not.toContain("mouse wheel");
   });
 
@@ -943,7 +946,7 @@ describe("TuxArchitectureMap Component", () => {
     const magnified = await mountSuspended(TuxArchitectureMap, { props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 } });
     await magnified.find('[aria-label="Make the diagram larger"]').trigger("click");
     await nextTick();
-    expect(magnified.find(".tux-map__hint").text()).toContain("hold Ctrl and scroll");
+    expect(magnified.find(".tux-map__hint").text()).toContain("double-click a card");
     const list = await mountSuspended(TuxArchitectureMap, {
       props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "list" },
     });
@@ -2008,7 +2011,7 @@ describe("TuxArchitectureMap Component", () => {
 
     // Enabling `Tests` wire filter brings in `f:tests/test_lib.ts` and emits `update:wireFilters`
     const testsFilterBtn = wrapper
-      .findAll("button.tux-map__wire-filter-btn")
+      .findAll("button.tux-map__wire-chip")
       .find((b) => b.text().includes("Tests"))!;
     await testsFilterBtn.trigger("click");
     await nextTick();
@@ -2358,12 +2361,12 @@ describe("TuxArchitectureMap Component", () => {
     expect(w1.find(".tux-map__panel").text()).toContain("Fold back into Comp A");
 
     // Level 5+ Wire Category Filter (`P0-2`): toggling `Prod` off hides `sg.rels` `imports` wire while keeping `tests` wire when `Tests` is toggled on
-    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="prod"]').trigger("click");
+    await w1.find('button.tux-map__wire-chip[data-wire-filter="prod"]').trigger("click");
     await nextTick();
     expect(
       w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),
     ).toBe(false);
-    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="tests"]').trigger("click");
+    await w1.find('button.tux-map__wire-chip[data-wire-filter="tests"]').trigger("click");
     await nextTick();
     expect(
       w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),

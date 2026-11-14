@@ -92,19 +92,18 @@ describe("TuxArchitectureMap: the toolbar keeps its order at every level and in 
     ["Level 5, list", { initialLevel: 5, initialFocus: "c-api/1", initialView: "list" }],
   ];
 
-  it("has the same controls in the same order, the magnify group last of the leading ones", async () => {
+  it("has the same controls in the same order at every level and in both views", async () => {
     const orders: string[][] = [];
     for (const [, props] of views) {
       const { wrapper } = await mountMap(props);
-      // the list view has no magnify group: its place is held, empty
-      orders.push(toolbarOrder(wrapper.element).map((n) => (n === "tux-map__magnify-gap" ? "Magnify the diagram" : n)));
+      orders.push(toolbarOrder(wrapper.element));
     }
+    // the magnify group left the toolbar for the canvas's corner (#271)
     expect(orders[0]).toEqual([
       "Semantic zoom level",
       "Wayfinding outline",
       "Topology perspective",
       "tux-map__more-wrap",
-      "Magnify the diagram",
       "tux-map__goto-btn",
       "tux-map__search-wrap",
       "Display mode",
@@ -113,17 +112,13 @@ describe("TuxArchitectureMap: the toolbar keeps its order at every level and in 
     for (const [i, [label]] of views.entries()) expect(orders[i], label).toEqual(orders[0]);
   });
 
-  it("holds the magnify group's place in the list view, hidden from everyone", async () => {
+  it("puts the magnify controls in the canvas, not the toolbar, and none in the list view (#271)", async () => {
+    const diagram = await mountMap({ initialLevel: 2 });
+    expect(diagram.wrapper.find(".tux-map__tools .tux-map__zoomctl").exists()).toBe(false);
+    expect(diagram.wrapper.find(".tux-map__canvas > .tux-map__zoomctl").exists()).toBe(true);
     const { wrapper } = await mountMap({ initialLevel: 2, initialView: "list" });
-    expect(wrapper.find(".tux-map__magnify").exists()).toBe(false);
-    const gap = wrapper.find(".tux-map__magnify-gap");
-    expect(gap.exists()).toBe(true);
-    expect(gap.attributes("aria-hidden")).toBe("true");
-    const rule = declarations(".tux-map__magnify-gap").join(";");
-    expect(rule).toMatch(/visibility:\s*hidden/);
-    // two icon buttons, the Fit button's min-width and the group's border
-    expect(rule).toMatch(/width:\s*calc\(var\(--tux-map-target\) \* 2 \+ 3\.4rem \+ 2px\)/);
-    expect(declarations(".tux-map__magnify-fit").join(";")).toMatch(/min-width:\s*3\.4rem/);
+    expect(wrapper.find(".tux-map__zoomctl").exists()).toBe(false);
+    expect(wrapper.find(".tux-map__magnify-gap").exists()).toBe(false);
   });
 
   it("wraps the trailing controls as one group, and never `?` alone", () => {
@@ -282,8 +277,9 @@ describe("TuxArchitectureMap: magnify says how much larger than Fit (#205)", () 
     await nextTick();
     const fit = state.fitScale as number;
     expect(fit).toBeLessThan(0.75);
-    const label = () => wrapper.find(".tux-map__magnify-fit").text();
-    expect(label()).toBe("Fit");
+    // the percentage is its own readout in the canvas zoom (#271), 100% at Fit
+    const label = () => wrapper.find("[data-zoom-percent]").text();
+    expect(label()).toBe("100%");
     const seen: number[] = [];
     while (!(wrapper.find('[aria-label="Make the diagram larger"]').element as HTMLButtonElement).disabled) {
       await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
@@ -306,8 +302,8 @@ describe("TuxArchitectureMap: magnify says how much larger than Fit (#205)", () 
     await nextTick();
     const vp = wrapper.find(".tux-map__viewport");
     const full = Math.ceil(state.stageData.height * state.stageScale) + 2;
-    // the height the component asks for includes the viewport's border
-    expect(state.computedViewportHeight).toContain(`min(${full}px, 75vh)`);
+    // magnified, the canvas keeps the held height (#271): a zoom never resizes its box
+    expect(state.computedViewportHeight).toBe(`${state.heldFitHeight}px`);
     expect(declarations(".tux-map__viewport")[0]).toMatch(/box-sizing:\s*border-box/);
     const measure = async (h: number) => {
       Object.defineProperty(vp.element, "offsetHeight", { value: h, configurable: true });

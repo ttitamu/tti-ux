@@ -72,6 +72,7 @@ import {
   buildStageData,
   cardDescriptionLines,
   middleEllipsizeFolderName,
+  wireCategoriesOnView,
   wireLabelAttrs,
   wirePairKey,
   type ComputedStageData,
@@ -260,6 +261,7 @@ const arrowMarkerId = `tux-map-arrow-${instanceId}`;
 const goToListboxId = `tux-map-goto-listbox-${instanceId}`;
 const wireInspectorId = `tux-map-wire-pop-${instanceId}`;
 const blastIntentKeyId = `tux-map-intent-${instanceId}`;
+const wiresLabelId = `tux-map-wires-${instanceId}`;
 
 function getLevel3Kids(
   M: TuxMapLevelModel,
@@ -1235,6 +1237,31 @@ const stageToggles: StageToggles = {
 };
 
 const stageData = computed<ComputedStageData>(() => buildStageData(stageBase.value, stageToggles));
+
+// The Wires filter (#272). Each choice says on hover what it draws; one with nothing on this view says
+// so too, and a line under the bar says when the filter leaves the view with no wires at all.
+const WIRE_FILTER_CHOICES: { id: TuxMapWireCategory; label: string; noun: string; says: string }[] = [
+  {
+    id: "prod",
+    label: "Prod",
+    noun: "production",
+    says: "Production wires: what runs, calls, reads and writes at run time, and the imports behind it. At Level 2, the containers' relationships.",
+  },
+  { id: "tests", label: "Tests", noun: "test", says: "Test wires: test code and what it exercises." },
+  { id: "ci", label: "CI", noun: "CI", says: "CI wires: workflows, checks and build steps, and what they build or run." },
+  { id: "docs", label: "Docs", noun: "doc", says: "Doc wires: documentation, and prose that mentions a part." },
+];
+const wireCategoriesHere = computed<ReadonlySet<TuxMapWireCategory>>(() => wireCategoriesOnView(stageBase.value));
+const wireFilterShown = computed<boolean>(() => currentLevel.value === 2 || currentLevel.value === 3 || currentLevel.value >= 5);
+const wiresFilterNote = computed<string>(() => {
+  if (!wireFilterShown.value || effectiveIsListView.value) return "";
+  const on = WIRE_FILTER_CHOICES.filter((c) => activeWireCategoriesSet.value.has(c.id));
+  if (on.length === 0) return "No wires drawn: every kind of wire is off. Turn on Prod, Tests, CI or Docs to see them.";
+  if (on.some((c) => wireCategoriesHere.value.has(c.id))) return "";
+  const names = on.map((c) => c.noun);
+  const said = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} or ${names.at(-1)}`;
+  return `No wires drawn: this view has no ${said} wires.`;
+});
 
 watch(
   () => stageData.value.foldedToRepresentative,
@@ -3441,49 +3468,134 @@ function nearestMagnifyStep(scale: number | undefined): number | null {
   if (typeof scale !== "number" || !Number.isFinite(scale) || scale <= 0) return null;
   return MAGNIFY_SCALES.reduce((best, m) => (Math.abs(m - scale) <= Math.abs(best - scale) ? m : best));
 }
+/** The largest stage scale, twice the diagram's real size: the last magnify step. */
+const MAX_STAGE_SCALE = MAGNIFY_SCALES[MAGNIFY_SCALES.length - 1]!;
+// The canvas zoom (#271) is this one scale: the buttons step through MAGNIFY_SCALES, Ctrl/Cmd +
+// wheel and a pinch move it continuously, between Fit and MAX_STAGE_SCALE. `null` is Fit.
 const zoomScale = ref<number | null>(nearestMagnifyStep(props.initialZoom));
 const stageScale = computed<number>(() =>
   zoomScale.value !== null && zoomScale.value > fitScale.value ? zoomScale.value : fitScale.value,
 );
 const isMagnified = computed<boolean>(() => stageScale.value > fitScale.value + 0.001);
-const canMagnify = computed<boolean>(() => MAGNIFY_SCALES.some((m) => m > stageScale.value + 0.01));
+const canMagnify = computed<boolean>(() => stageScale.value < MAX_STAGE_SCALE - 0.001);
 // The size the reader is told is the size against Fit, which is what "larger" is larger than.
 // The stage's own scale read 75% after the first "larger" on a screen where Fit is 0.72 (#205)
 const magnifyPercent = computed<number>(() => Math.round((stageScale.value / fitScale.value) * 100));
 const magnifyLabel = computed<string>(() => (isMagnified.value ? `${magnifyPercent.value}%` : "Fit"));
 
-function magnifyBy(dir: 1 | -1) {
-  const s = stageScale.value;
-  if (dir > 0) {
-    const next = MAGNIFY_SCALES.find((m) => m > s + 0.01);
-    if (next !== undefined) zoomScale.value = next;
-  } else {
-    const prev = [...MAGNIFY_SCALES].reverse().find((m) => m < s - 0.01 && m > fitScale.value + 0.001);
-    zoomScale.value = prev ?? null;
-  }
-  afterMagnify();
-  liveAnnouncement.value = isMagnified.value
+const zoomSaid = () =>
+  isMagnified.value
     ? `Diagram at ${magnifyPercent.value}% of the fitted size: scroll, swipe or drag the background to move around it`
     : "Diagram fitted to the width";
+
+function magnifyBy(dir: 1 | -1) {
+  const s = stageScale.value;
+  let next: number | null;
+  if (dir > 0) {
+    next = MAGNIFY_SCALES.find((m) => m > s + 0.01) ?? (s < MAX_STAGE_SCALE ? MAX_STAGE_SCALE : null);
+    if (next === null) return;
+  } else {
+    next = [...MAGNIFY_SCALES].reverse().find((m) => m < s - 0.01 && m > fitScale.value + 0.001) ?? null;
+  }
+  // the selection stays in sight; without one, the middle of the view stays where it is
+  zoomStageTo(next, selectedId.value && stageData.value.rects[selectedId.value] ? "selection" : null);
+  liveAnnouncement.value = zoomSaid();
 }
 
 function magnifyFit() {
-  zoomScale.value = null;
-  afterMagnify();
-  liveAnnouncement.value = "Diagram fitted to the width";
+  zoomStageTo(null, "selection");
+  liveAnnouncement.value = zoomSaid();
 }
 
-// Magnified, the viewport scrolls instead of the stage sliding (panX), so the slide goes and the
-// selection is scrolled to; back at Fit, the slide that keeps it clear of the panel comes back
-function afterMagnify() {
+/**
+ * Sets the canvas zoom (#271). `anchor` is a point of the viewport, in px from its content box's
+ * top-left, that keeps the part of the diagram under it (the pointer, for a wheel or a pinch); `null`
+ * keeps the middle of the view, and "selection" brings the selected card into view. The scale and the
+ * scroll change in the same frame, before it is painted: nothing animates, and nothing waits for a
+ * measure, so there is no size to feed back into the layout (#268).
+ */
+function zoomStageTo(scale: number | null, anchor: [number, number] | "selection" | null) {
+  const vp = viewportRef.value;
+  const s0 = stageScale.value;
+  const fit = fitScale.value;
+  const clamped = scale === null ? null : Math.min(MAX_STAGE_SCALE, scale);
+  // within half a percent of Fit is Fit: a pinch back down lands on it instead of a hair above it
+  const next = clamped === null || clamped <= fit * 1.005 ? null : clamped;
+  const [ax, ay] =
+    Array.isArray(anchor) ? anchor : vp ? [vp.clientWidth / 2, vp.clientHeight / 2] : [0, 0];
+  // the diagram's point under the anchor, before the change
+  const px = vp ? (vp.scrollLeft + ax - panX.value) / s0 : 0;
+  const py = vp ? (vp.scrollTop + ay - stageOffsetY.value) / s0 : 0;
+  landTravel();
+  zoomScale.value = next;
   nextTick(() => {
-    if (isMagnified.value) {
-      panX.value = 0;
-      scrollSelectionIntoView();
-    } else {
-      keepClear(selectedId.value);
+    // magnified, the viewport scrolls instead of the stage sliding (panX); at Fit the slide that
+    // keeps the selection clear of the panel comes back
+    if (isMagnified.value) panX.value = 0;
+    if (isMagnified.value && anchor === "selection" && selectedId.value) scrollSelectionIntoView();
+    else if (vp) {
+      // a fitted diagram under a fixed `height` may still scroll; one that fits is clamped to 0
+      const s1 = stageScale.value;
+      scrollViewport(vp, Math.max(0, px * s1 - ax), Math.max(0, py * s1 + stageOffsetY.value - ay));
     }
+    if (!isMagnified.value) keepClear(selectedId.value);
   });
+}
+
+// Ctrl/Cmd + wheel and a pinch (#271). A wheel can send many events in a frame: they are summed and
+// applied once per frame, around the last pointer position. A mouse notch (100 px) is about 28%; a
+// trackpad's pinch sends small deltas, each its own small step.
+let wheelZoomPending: { factor: number; at: [number, number] } | null = null;
+let wheelZoomFrame = 0;
+let zoomSayTimer: ReturnType<typeof setTimeout> | null = null;
+
+function wheelDeltaPx(ev: WheelEvent, d: number): number {
+  if (ev.deltaMode === 1) return d * 16;
+  if (ev.deltaMode === 2) return d * (viewportRef.value?.clientHeight || 400);
+  return d;
+}
+
+function zoomByWheel(ev: WheelEvent) {
+  const dy = wheelDeltaPx(ev, ev.deltaY);
+  const factor = Math.exp(-Math.max(-25, Math.min(25, dy)) / 100);
+  const [bx, by] = viewportBox();
+  const at: [number, number] = [ev.clientX - bx!, ev.clientY - by!];
+  if (wheelZoomPending) {
+    wheelZoomPending.factor *= factor;
+    wheelZoomPending.at = at;
+  } else wheelZoomPending = { factor, at };
+  if (wheelZoomFrame) return;
+  const run = () => {
+    wheelZoomFrame = 0;
+    const p = wheelZoomPending;
+    wheelZoomPending = null;
+    if (!p) return;
+    const base = zoomScale.value !== null && zoomScale.value > fitScale.value ? zoomScale.value : fitScale.value;
+    zoomStageTo(base * p.factor, p.at);
+    // said once the gesture rests, not for every step of it
+    if (zoomSayTimer) clearTimeout(zoomSayTimer);
+    zoomSayTimer = setTimeout(() => {
+      zoomSayTimer = null;
+      liveAnnouncement.value = zoomSaid();
+    }, 400);
+  };
+  if (typeof requestAnimationFrame === "function") wheelZoomFrame = requestAnimationFrame(run);
+  else run();
+}
+
+/** Whether the diagram is larger than its viewport, so there is something to pan. */
+function canPanStage(): boolean {
+  const vp = viewportRef.value;
+  return Boolean(vp && (vp.scrollWidth > vp.clientWidth + 1 || vp.scrollHeight > vp.clientHeight + 1));
+}
+
+/** Pans the view by (dx, dy) px; false when there was nothing to pan. */
+function panStageBy(dx: number, dy: number): boolean {
+  const vp = viewportRef.value;
+  if (!vp || !canPanStage()) return false;
+  landTravel();
+  scrollViewport(vp, vp.scrollLeft + dx, vp.scrollTop + dy);
+  return true;
 }
 
 // The viewport keeps its size from level to level (#261). A level's own fitted height decided it,
@@ -3509,12 +3621,11 @@ const computedViewportHeight = computed<string>(() => {
   if (props.height && props.height !== "auto") {
     return props.height;
   }
-  const fitH = heldFitHeight.value;
-  if (!isMagnified.value) return `${fitH}px`;
-  // magnified: tall enough to read, never taller than most of the screen; the rest scrolls.
-  // The 2px are the viewport's border: without them a viewport as tall as the diagram still
-  // scrolled by those 2px, and showed a scrollbar thumb as tall as itself (#205)
-  return `max(${fitH}px, min(${Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER}px, 75vh))`;
+  // Magnified or not, the canvas keeps its size (#271): a zoom changes what is in it, never its box.
+  // It grew to the diagram's height (up to 75vh) when magnified; with a continuous zoom that moved
+  // the page under every step of a pinch, and the centring offset caught up a frame after the
+  // resize was measured, so the point under the pointer slid and the stage jumped.
+  return `${heldFitHeight.value}px`;
 });
 
 const VIEWPORT_BORDER = 2;
@@ -3534,10 +3645,8 @@ const magnifiedShowsFullHeight = computed<boolean>(
  * animate it, keep their own origin.
  */
 const viewportInnerHeight = computed<number>(() => {
-  const outer =
-    !isMagnified.value && (!props.height || props.height === "auto")
-      ? heldFitHeight.value
-      : viewportOuterHeight.value;
+  // without a host `height` the box is the held height, magnified or not (#271): known here, not measured
+  const outer = !props.height || props.height === "auto" ? heldFitHeight.value : viewportOuterHeight.value;
   return Math.max(0, outer - VIEWPORT_BORDER);
 });
 const stageOffsetY = computed<number>(() => {
@@ -3796,13 +3905,14 @@ function onMapPointerLeave() {
 
 watch(wheelMode, () => disarmWheel());
 
-// The help names the wheel only as it works here: a plain wheel zooms unless
-// `wheelZoom` is off or the diagram is magnified, where it scrolls and zooming
-// needs Ctrl (a trackpad pinch sends it too). Under the veil it names the plain
-// wheel and `wheelVeilHint` says to click first. It counts the levels this map has.
+// The help names the wheel only as it works here: a plain wheel changes the level unless
+// `wheelZoom` is off or the diagram is magnified, where it scrolls. Ctrl/Cmd + wheel and a pinch
+// magnify the canvas (#271), so without the plain wheel a level is changed by a double-click, a
+// key or the level buttons. Under the veil it names the plain wheel and `wheelVeilHint` says to
+// click first. It counts the levels this map has.
 const wheelZooms = computed<boolean>(() => wheelMode.value !== "off" && !isMagnified.value);
+const CANVAS_ZOOM_HINT = " Ctrl+scroll or pinch magnifies the canvas; drag its background to move it.";
 const hintText = computed<string>(() => {
-  const scroll = wheelZooms.value ? "scroll" : "Ctrl+scroll";
   if (effectiveIsListView.value) {
     return "Choose an item to see what it depends on, what uses it and its details. The level buttons go in and out.";
   }
@@ -3812,7 +3922,10 @@ const hintText = computed<string>(() => {
       ? "Tap a deployment resource to see its connections, firewall rules and hosted containers." +
           (deeper ? " Double-tap a '+' node, or use the level buttons, to go inside it." : "")
       : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers." +
-          (deeper ? ` Double-click or ${scroll} up on nodes with '+' to drill into Level 5 internal modules/schemas.` : "");
+          (deeper
+            ? ` Double-click${wheelZooms.value ? " or scroll up" : ""} on nodes with '+' to drill into Level 5 internal modules/schemas.`
+            : "") +
+          CANVAS_ZOOM_HINT;
   }
   // '+' talk only where a card in view has a '+': the bottom of the code has none
   const deeper = renderedCards.value.some((c) => c.zoomable);
@@ -3820,21 +3933,27 @@ const hintText = computed<string>(() => {
     return (
       "Tap a card to see its links and details." +
       (deeper ? " Double-tap a '+' card, or use the level buttons, to go inside it." : " The level buttons go in and out.") +
-      " Larger magnifies the diagram; then swipe to move around it."
+      " The + in the canvas's corner magnifies the diagram; then swipe to move around it."
     );
   }
   if (currentLevel.value >= 5) {
-    return deeper
-      ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
-      : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
+    return (
+      (deeper
+        ? `Inspecting deep internal modules & code symbols. Double-click${wheelZooms.value ? " or scroll up" : ""} on '+' cards to drill deeper, or ${wheelZooms.value ? "scroll down / " : ""}press Escape to return to the parent level.`
+        : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll down or press" : "Press"} Escape to return to the parent level.`) +
+      CANVAS_ZOOM_HINT
+    );
   }
   // Level 4 is beside the zoom path, so zooming in from Level 3 lands on Level 5: say so (#205)
   const levels =
     `Levels 1–${maxAvailableLevel.value}` +
     (modelDepth.value >= 5 ? ". Level 4 is Infrastructure, on its own button: zooming in goes from Level 3 to Level 5" : "");
-  return wheelZooms.value
-    ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
-    : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
+  return (
+    (wheelZooms.value
+      ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
+      : `Hover over any card to highlight its links, or double-click a card (or press + and −) to zoom in and out across ${levels}.`) +
+    CANVAS_ZOOM_HINT
+  );
 });
 
 function onWindowKeydown(ev: KeyboardEvent) {
@@ -3918,6 +4037,9 @@ onMounted(() => {
   applyAutoListView();
   if (typeof window !== "undefined") {
     window.addEventListener("keydown", onWindowKeydown);
+    window.addEventListener("keydown", onWindowSpaceDown, { capture: true });
+    window.addEventListener("keyup", onWindowSpaceUp, { capture: true });
+    window.addEventListener("blur", releaseSpace);
     window.addEventListener("resize", dropViewportBox);
     window.addEventListener("scroll", onPageScroll, { capture: true, passive: true });
     document.addEventListener("pointerdown", onDocumentPointerDown);
@@ -3958,6 +4080,9 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   if (typeof window !== "undefined") {
     window.removeEventListener("keydown", onWindowKeydown);
+    window.removeEventListener("keydown", onWindowSpaceDown, { capture: true });
+    window.removeEventListener("keyup", onWindowSpaceUp, { capture: true });
+    window.removeEventListener("blur", releaseSpace);
     window.removeEventListener("resize", dropViewportBox);
     window.removeEventListener("scroll", onPageScroll, { capture: true });
     document.removeEventListener("pointerdown", onDocumentPointerDown);
@@ -3965,6 +4090,8 @@ onBeforeUnmount(() => {
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
   clearWheelDisarmTimer();
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
+  if (zoomSayTimer) clearTimeout(zoomSayTimer);
+  if (wheelZoomFrame && typeof cancelAnimationFrame === "function") cancelAnimationFrame(wheelZoomFrame);
   if (announceTimer) clearTimeout(announceTimer);
   if (laserRaf !== null && typeof window !== "undefined") {
     window.cancelAnimationFrame(laserRaf);
@@ -4046,6 +4173,12 @@ function doubleClickCard(): string | null {
 }
 
 function onMapClickCapture(ev: MouseEvent) {
+  // the click that ends a drag of the canvas is not a click on what it started over (#271)
+  if (swallowClickAfterDrag) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    return;
+  }
   cancelTravel();
   if (activeTool.value !== "select") return;
   // `detail` is the browser's click count; a key or a script sends 0
@@ -4447,15 +4580,14 @@ function fractalZoomLevelFor(id: string): number {
 }
 
 function zoomBucketTitleFor(id: string, mini: boolean): string {
-  const scroll = wheelZooms.value ? "Scroll up" : "Ctrl+scroll up";
   if (mini && currentLevel.value >= 5 && parentOf.value.has(id)) {
     const insideLvl = fractalZoomLevelFor(id);
     const stratum = getSubgraphForNode(id)?.stratum || "inside";
     const homeParent = parentOf.value.get(id)!;
     const homeLvl = levelForFocus(homeParent);
-    return `${scroll} or press + to open Level ${insideLvl} (${stratum}); double-click to go to Level ${homeLvl} where it lives`;
+    return `${wheelZooms.value ? "Scroll up or press" : "Press"} + to open Level ${insideLvl} (${stratum}); double-click to go to Level ${homeLvl} where it lives`;
   }
-  return `${scroll} or double-click to zoom in a level`;
+  return `${wheelZooms.value ? "Scroll up or double-click" : "Double-click"} to zoom in a level`;
 }
 
 async function hydrateLazySubgraph(
@@ -4895,9 +5027,27 @@ function onViewportWheel(ev: WheelEvent) {
   if (now - lastWheelZoomAt >= 520) cancelTravel();
 
   const isPinchOrMod = ev.ctrlKey || ev.metaKey;
-  // magnified, the wheel scrolls the diagram; a trackpad pinch (ctrl) still changes level
-  if (isMagnified.value && !isPinchOrMod) return;
-  if (!plainWheelZooms.value && !isPinchOrMod) {
+  // Ctrl/Cmd + wheel and a trackpad pinch (which arrives as Ctrl + wheel) zoom the canvas around
+  // the pointer, under the veil too: kept from the page, whose own zoom it would otherwise be (#271)
+  if (isPinchOrMod) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    clearPreZoomCardTransform();
+    zoomByWheel(ev);
+    return;
+  }
+  // Shift + wheel pans sideways where there is something to pan; elsewhere it is the page's
+  if (ev.shiftKey) {
+    const d = wheelDeltaPx(ev, ev.deltaX || ev.deltaY);
+    if (panStageBy(d, 0)) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    return;
+  }
+  // magnified, the plain wheel scrolls the diagram
+  if (isMagnified.value) return;
+  if (!plainWheelZooms.value) {
     clearPreZoomCardTransform();
     return;
   }
@@ -5383,7 +5533,35 @@ function moveRovingCardFocus(
   });
 }
 
+/** How far an arrow key pans the canvas: a tenth of the view, 40px at least. */
+const panStep = (size: number) => Math.max(40, Math.round(size / 10));
+
+/**
+ * The canvas itself focused, not a card in it (#271): + and − zoom it (− at Fit is the level's, as
+ * before), 0 fits it, and the arrow keys pan it while the diagram is larger than the view. True when
+ * the key was the canvas's.
+ */
+function onCanvasKey(ev: KeyboardEvent): boolean {
+  const vp = viewportRef.value;
+  if (!vp || ev.target !== vp) return false;
+  if (ev.key === "+" || ev.key === "=") magnifyBy(1);
+  // at Fit there is nothing smaller: − goes up a level, as it did before the canvas zoom
+  else if (ev.key === "-" || ev.key === "_") {
+    if (!isMagnified.value) return false;
+    magnifyBy(-1);
+  } else if (ev.key === "0") magnifyFit();
+  else if (ev.key.startsWith("Arrow")) {
+    const dx = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+    const dy = ev.key === "ArrowDown" ? 1 : ev.key === "ArrowUp" ? -1 : 0;
+    // nothing to pan: the arrows go into the cards, as they did
+    if (!panStageBy(dx * panStep(vp.clientWidth), dy * panStep(vp.clientHeight))) return false;
+  } else return false;
+  ev.preventDefault();
+  return true;
+}
+
 function onStageKey(ev: KeyboardEvent) {
+  if (onCanvasKey(ev)) return;
   if (
     ev.key === "ArrowRight" ||
     ev.key === "ArrowLeft" ||
@@ -6354,6 +6532,8 @@ const visibleNotes = computed(() =>
 );
 
 function onStagePointerDown(e: PointerEvent) {
+  swallowClickAfterDrag = false;
+  pointerInsideViewport = true;
   if (e.button !== 0 || isWheelVeil(e.target)) return;
   const target = e.target as HTMLElement | null;
   if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
@@ -6404,8 +6584,10 @@ function onStagePointerDown(e: PointerEvent) {
   }
 
   // A mouse on the background may be the start of a drag: what a press there does is decided
-  // when it ends (a click clears the selection, as before) or once it has moved (#205)
-  if (isStagePanPointer(e) && isStageBackground(target)) {
+  // when it ends (a click clears the selection, as before) or once it has moved (#205). With
+  // Space held, a press anywhere on the canvas, a card too, is the start of a drag (#271)
+  if (isStagePanPointer(e) && (spaceHeld.value || isStageBackground(target))) {
+    if (spaceHeld.value) e.preventDefault();
     const vp = viewportRef.value;
     stageDrag = {
       pointerId: e.pointerId,
@@ -6503,18 +6685,69 @@ function endStageDrag(e: PointerEvent, cancelled = false) {
   if (!drag || e.pointerId !== drag.pointerId) return;
   stageDrag = null;
   isDraggingStage.value = false;
-  if (!drag.moved && !cancelled && selectedId.value) selectElement(null);
+  // the click the release sends, and, with Space still held, the click its keyup sends to a
+  // focused card, belong to the drag: they are swallowed until the next task after both are up
+  if (drag.moved && !cancelled) {
+    swallowClickAfterDrag = true;
+    if (!spaceHeld.value) setTimeout(endClickSwallow, 0);
+  }
+  else if (!cancelled && selectedId.value && isStageBackground(e.target as Element | null)) selectElement(null);
 }
+
+// Space + drag (#271): while Space is held over the canvas, a press anywhere on it pans. Space on a
+// focused button, a field or the go-to palette is theirs; held on the canvas, it does not scroll the page.
+const spaceHeld = ref<boolean>(false);
+let swallowClickAfterDrag = false;
+
+function isSpaceKey(ev: KeyboardEvent) {
+  return ev.key === " " || ev.code === "Space";
+}
+
+function onWindowSpaceDown(ev: KeyboardEvent) {
+  if (!isSpaceKey(ev)) return;
+  if (spaceHeld.value) {
+    // the key's repeats while it is held
+    ev.preventDefault();
+    return;
+  }
+  const vp = viewportRef.value;
+  if (!vp || effectiveIsListView.value || activeTool.value !== "select") return;
+  const t = ev.target;
+  const onCanvas = t === vp;
+  const onPage = t === document.body || t === document.documentElement;
+  // a card focused in the canvas, the mouse over it: Space may be the start of a pan. It is not
+  // held back from the card, so a keyboard press still selects it; a pan swallows that click
+  const inCanvas =
+    t instanceof Element && vp.contains(t) && !t.closest("input, textarea, select, [contenteditable]");
+  if (!onCanvas && !(pointerInsideViewport && (onPage || inCanvas))) return;
+  if (onCanvas || onPage) ev.preventDefault();
+  spaceHeld.value = true;
+}
+
+function onWindowSpaceUp(ev: KeyboardEvent) {
+  if (!isSpaceKey(ev)) return;
+  spaceHeld.value = false;
+  if (swallowClickAfterDrag && !stageDrag) setTimeout(endClickSwallow, 0);
+}
+
+function endClickSwallow() {
+  swallowClickAfterDrag = false;
+}
+
+const releaseSpace = () => void (spaceHeld.value = false);
+let pointerInsideViewport = false;
 
 const minimapRef = ref<InstanceType<typeof TuxArchitectureMapMinimap> | null>(null);
 
 function onViewportPointerLeave() {
   vpBox = null;
+  pointerInsideViewport = false;
   mapCursor.leave();
 }
 
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
+  pointerInsideViewport = true;
   if (moveStageDrag(e)) return mapCursor.move(e);
   if (isWheelVeil(e.target)) return;
   // the overview is over the canvas and lets the pointer through until it is inside its box (#228)
@@ -6874,7 +7107,7 @@ function buildSourceHref(src?: {
             @click="outlineOpen = !outlineOpen"
           >
             <Icon name="lucide:list-tree" aria-hidden="true" />
-            <span>Outline</span>
+            <span class="tux-map__btn-lbl">Outline</span>
           </button>
         </div>
 
@@ -6887,7 +7120,7 @@ function buildSourceHref(src?: {
             @click="toggleInfrastructureView()"
           >
             <Icon name="lucide:server" aria-hidden="true" />
-            <span>Infrastructure</span>
+            <span class="tux-map__btn-lbl">Infrastructure</span>
           </button>
         </div>
 
@@ -6900,6 +7133,7 @@ function buildSourceHref(src?: {
             aria-label="More view options"
             @click="moreMenuOpen = !moreMenuOpen"
           >
+            <Icon name="lucide:sliders-horizontal" aria-hidden="true" />
             <span>More</span>
           </button>
           <div
@@ -6920,122 +7154,8 @@ function buildSourceHref(src?: {
               <span class="tux-map__switch-track tux-map__switch-track--blast" />
               <span>Blast radius</span>
             </label>
-
-            <select
-              v-if="showBlastRadius"
-              v-model="blastIntent"
-              class="tux-map__intent-select"
-              aria-label="Blast radius intent: the kind of change it is lit for"
-              :aria-describedby="blastIntentKeyId"
-              :title="`${blastIntentDef.description} ${blastIntentRule}`"
-            >
-              <option v-for="d in TUX_MAP_BLAST_INTENTS" :key="d.id" :value="d.id" :title="d.description">
-                Intent: {{ d.label }}
-              </option>
-            </select>
-
-            <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125) -->
-            <div
-              v-if="props.annotations"
-              class="tux-map__seg"
-              role="group"
-              aria-label="Annotation tools"
-            >
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'select'"
-                title="Select & Inspect (V)"
-                @click="activeTool = 'select'"
-              >
-                <Icon name="lucide:mouse-pointer" aria-hidden="true" />
-                <span>Select</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'pen'"
-                title="Freehand Pen (P)"
-                @click="activeTool = 'pen'"
-              >
-                <Icon name="lucide:pen-tool" aria-hidden="true" />
-                <span>Pen</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'laser'"
-                title="Laser Pointer (L)"
-                @click="activeTool = 'laser'"
-              >
-                <Icon name="lucide:wand-sparkles" aria-hidden="true" />
-                <span>Laser</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'note'"
-                title="Sticky Note (N)"
-                @click="activeTool = 'note'"
-              >
-                <Icon name="lucide:sticky-note" aria-hidden="true" />
-                <span>Note</span>
-              </button>
-              <button
-                v-if="localStrokes.length > 0 || localNotes.length > 0"
-                type="button"
-                title="Clear annotations"
-                @click="clearAnnotations"
-              >
-                <Icon name="lucide:trash-2" aria-hidden="true" />
-                <span>Clear</span>
-              </button>
-            </div>
           </div>
         </div>
-
-        <!-- Magnify (#106): past fitting the width, the diagram scrolls. Last of the leading controls:
-             the list view has no magnify, and nothing after it moves when it goes (#205) -->
-        <div
-          v-if="!effectiveIsListView"
-          class="tux-map__stepper tux-map__magnify"
-          role="group"
-          aria-label="Magnify the diagram"
-        >
-          <button
-            type="button"
-            class="tux-map__iconbtn"
-            :disabled="!isMagnified"
-            aria-label="Make the diagram smaller"
-            title="Smaller"
-            @click="magnifyBy(-1)"
-          >
-            A−
-          </button>
-          <button
-            type="button"
-            class="tux-map__magnify-fit"
-            :aria-pressed="!isMagnified"
-            :aria-label="
-              isMagnified
-                ? `Fit the diagram to the width (now ${magnifyLabel} of the fitted size)`
-                : 'The diagram fits the width'
-            "
-            title="Fit to the width"
-            @click="magnifyFit()"
-          >
-            {{ magnifyLabel }}
-          </button>
-          <button
-            type="button"
-            class="tux-map__iconbtn"
-            :disabled="!canMagnify"
-            aria-label="Make the diagram larger"
-            title="Larger: then scroll, swipe or drag the background to move around it"
-            @click="magnifyBy(1)"
-          >
-            A+
-          </button>
-        </div>
-        <!-- The list view has nothing to magnify. The group's width stays, empty, so the row
-             breaks where it does in the diagram view (#205) -->
-        <span v-else class="tux-map__magnify-gap" aria-hidden="true" />
 
         <!-- The trailing controls wrap as one group, in one order, at every level and in both views (#205) -->
         <div class="tux-map__tools-end">
@@ -7075,16 +7195,20 @@ function buildSourceHref(src?: {
               <button
                 type="button"
                 :aria-pressed="!effectiveIsListView"
+                title="Diagram"
                 @click="setExplicitViewMode('diagram')"
               >
-                Diagram
+                <Icon name="lucide:network" aria-hidden="true" />
+                <span class="tux-map__btn-lbl">Diagram</span>
               </button>
               <button
                 type="button"
                 :aria-pressed="effectiveIsListView"
+                title="List"
                 @click="setExplicitViewMode('list')"
               >
-                List
+                <Icon name="lucide:list" aria-hidden="true" />
+                <span class="tux-map__btn-lbl">List</span>
               </button>
             </div>
 
@@ -7190,13 +7314,10 @@ function buildSourceHref(src?: {
           </ol>
         </nav>
 
-        <!-- Wire Dependency Category Filter Bar + Split Reset at Levels 2, 3, and 5+ (#118) -->
-        <div
-          v-if="currentLevel === 2 || currentLevel === 3 || currentLevel >= 5"
-          class="tux-map__wire-filters"
-          role="group"
-          aria-label="Wire dependency categories"
-        >
+        <!-- Wire Dependency Category Filter Bar + Split Reset at Levels 2, 3, and 5+ (#118). The choices
+             are TUX's toggle-style chip (TuxRemovableChip, `selected`) inside a native toggle button,
+             which gives them the keyboard the chip has not got on its own: Tab, then Space or Enter (#272) -->
+        <div v-if="wireFilterShown" class="tux-map__wire-filters">
           <button
             v-if="effectiveSplitSet.size > 0"
             type="button"
@@ -7206,27 +7327,34 @@ function buildSourceHref(src?: {
           >
             Fold split ({{ effectiveSplitSet.size }})
           </button>
-          <span class="tux-map__wire-filters-lbl">Wires:</span>
-          <button
-            v-for="cat in [
-              { id: 'prod' as const, label: 'Prod' },
-              { id: 'tests' as const, label: 'Tests' },
-              { id: 'ci' as const, label: 'CI' },
-              { id: 'docs' as const, label: 'Docs' },
-            ]"
-            :key="cat.id"
-            type="button"
-            class="tux-map__wire-filter-btn"
-            :data-wire-filter="cat.id"
-            :aria-pressed="activeWireCategoriesSet.has(cat.id)"
-            @click="toggleWireCategory(cat.id)"
-          >
-            {{ cat.label }}
-          </button>
+          <span :id="wiresLabelId" class="tux-map__wire-filters-lbl">Wires</span>
+          <div class="tux-map__wire-chips" role="group" :aria-labelledby="wiresLabelId">
+            <button
+              v-for="cat in WIRE_FILTER_CHOICES"
+              :key="cat.id"
+              type="button"
+              class="tux-map__wire-chip"
+              :class="{ 'tux-map__wire-chip--none-here': !wireCategoriesHere.has(cat.id) }"
+              :data-wire-filter="cat.id"
+              :aria-pressed="activeWireCategoriesSet.has(cat.id)"
+              :title="wireCategoriesHere.has(cat.id) ? cat.says : `${cat.says} None on this view.`"
+              @click="toggleWireCategory(cat.id)"
+            >
+              <TuxRemovableChip
+                size="md"
+                :selected="activeWireCategoriesSet.has(cat.id)"
+                :icon="activeWireCategoriesSet.has(cat.id) ? 'lucide:check' : undefined"
+              >
+                {{ cat.label }}
+              </TuxRemovableChip>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- always in the page, so the live region speaks when it fills; empty, it takes no room -->
+    <p class="tux-map__wires-note" role="status" data-wires-empty>{{ wiresFilterNote }}</p>
     <p class="tux-map__hint">{{ wheelVeilHint }}{{ hintText }}</p>
     <p class="tux-map__summary">{{ summaryText }}</p>
 
@@ -7318,14 +7446,28 @@ function buildSourceHref(src?: {
     </ul>
     <p v-if="blastFade" class="tux-map__blast-note">{{ blastFade.text }}</p>
     <!-- The intent's definition and what it changes here (#259); the intent select is described by it -->
-    <p v-if="showBlastRadius" :id="blastIntentKeyId" class="tux-map__blast-intent" data-blast-intent-key>
-      <strong>Intent: {{ blastIntentDef.label }}.</strong> {{ blastIntentDef.description }} {{ blastIntentRule }}
-      <strong v-if="blastIntentVsGeneral" role="status" data-blast-intent-vs>{{
-        blastIntentVsGeneral.same
-          ? `Same cards as General on this view: nothing here that ${blastIntentDef.label} skips or stops at changes what is lit.`
-          : `${blastIntentDef.label} lights ${blastIntentVsGeneral.n} card${blastIntentVsGeneral.n === 1 ? "" : "s"} here; General lights ${blastIntentVsGeneral.general}.`
-      }}</strong>
-    </p>
+    <!-- The intent is chosen beside the line that defines it, not in the toolbar (#259, #273) -->
+    <div v-if="showBlastRadius" class="tux-map__blast-intent-row">
+      <select
+        v-model="blastIntent"
+        class="tux-map__intent-select"
+        aria-label="Blast radius intent: the kind of change it is lit for"
+        :aria-describedby="blastIntentKeyId"
+        :title="`${blastIntentDef.description} ${blastIntentRule}`"
+      >
+        <option v-for="d in TUX_MAP_BLAST_INTENTS" :key="d.id" :value="d.id" :title="d.description">
+          Intent: {{ d.label }}
+        </option>
+      </select>
+      <p :id="blastIntentKeyId" class="tux-map__blast-intent" data-blast-intent-key>
+        <strong>Intent: {{ blastIntentDef.label }}.</strong> {{ blastIntentDef.description }} {{ blastIntentRule }}
+        <strong v-if="blastIntentVsGeneral" role="status" data-blast-intent-vs>{{
+          blastIntentVsGeneral.same
+            ? `Same cards as General on this view: nothing here that ${blastIntentDef.label} skips or stops at changes what is lit.`
+            : `${blastIntentDef.label} lights ${blastIntentVsGeneral.n} card${blastIntentVsGeneral.n === 1 ? "" : "s"} here; General lights ${blastIntentVsGeneral.general}.`
+        }}</strong>
+      </p>
+    </div>
     <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
@@ -7440,6 +7582,7 @@ function buildSourceHref(src?: {
             'tux-map__viewport--magnified': isMagnified,
             'tux-map__viewport--full-height': magnifiedShowsFullHeight,
             'tux-map__viewport--dragging': isDraggingStage,
+            'tux-map__viewport--space-pan': spaceHeld && !isDraggingStage,
             'tux-map__viewport--page-wheel': !plainWheelZooms && !isMagnified,
             'tux-map__viewport--cursor': cursorShown,
           },
@@ -7867,7 +8010,7 @@ function buildSourceHref(src?: {
               :data-zb-for="zn.id"
               :style="zn.style"
               :aria-label="`Zoom into ${resById[zn.id]?.title || zn.id}`"
-              :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in to Level 5 internal modules/schemas`"
+              :title="`${wheelZooms ? 'Scroll up or double-click' : 'Double-click'} to zoom in to Level 5 internal modules/schemas`"
               @click.stop="zoomIntoElement(zn.id)"
             >
               +
@@ -8000,8 +8143,8 @@ function buildSourceHref(src?: {
                       ? `Double-click to zoom · ${proximityCard.name}`
                       : `Esc to zoom out · ${proximityCard.name}`
                     : proximityCard.zoomable
-                      ? `${wheelZooms ? "Scroll" : "Ctrl+scroll"} to zoom · ${proximityCard.name}`
-                      : `${wheelZooms ? "Scroll" : "Ctrl+scroll"} out · ${proximityCard.name}`
+                      ? `${wheelZooms ? "Scroll" : "Double-click"} to zoom · ${proximityCard.name}`
+                      : `${wheelZooms ? "Scroll out" : "Esc to zoom out"} · ${proximityCard.name}`
                 }}
               </span>
             </span>
@@ -8081,6 +8224,107 @@ function buildSourceHref(src?: {
         :coarse="coarsePointer"
         :narrow-below="autoListBreakpoint"
       />
+
+      <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125): in the canvas's top-left
+           corner since #273, as icons named by their titles; the toolbar keeps one line -->
+      <div
+        v-if="props.annotations && !effectiveIsListView"
+        class="tux-map__drawtools"
+        role="group"
+        aria-label="Annotation tools"
+      >
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'select'"
+          title="Select & Inspect (V)"
+          @click="activeTool = 'select'"
+        >
+          <Icon name="lucide:mouse-pointer" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Select</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'pen'"
+          title="Freehand Pen (P)"
+          @click="activeTool = 'pen'"
+        >
+          <Icon name="lucide:pen-tool" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Pen</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'laser'"
+          title="Laser Pointer (L)"
+          @click="activeTool = 'laser'"
+        >
+          <Icon name="lucide:wand-sparkles" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Laser</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'note'"
+          title="Sticky Note (N)"
+          @click="activeTool = 'note'"
+        >
+          <Icon name="lucide:sticky-note" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Note</span>
+        </button>
+        <button
+          v-if="localStrokes.length > 0 || localNotes.length > 0"
+          type="button"
+          title="Clear annotations"
+          @click="clearAnnotations"
+        >
+          <Icon name="lucide:trash-2" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Clear</span>
+        </button>
+      </div>
+
+      <!-- Canvas zoom (#271): in the canvas's top-right corner, beside the details panel when it is
+           open over the map. It does what Ctrl/Cmd + wheel, a pinch and the + − 0 keys do (2.5.7) -->
+      <div
+        v-if="!effectiveIsListView"
+        class="tux-map__zoomctl"
+        :class="{ 'tux-map__zoomctl--beside-panel': Boolean(selectedPanelEntity) }"
+        role="group"
+        aria-label="Magnify the diagram"
+      >
+        <button
+          type="button"
+          class="tux-map__zoomctl-btn"
+          :disabled="!isMagnified"
+          aria-label="Make the diagram smaller"
+          title="Zoom out (−, or Ctrl + scroll down)"
+          @click="magnifyBy(-1)"
+        >
+          <Icon name="lucide:minus" aria-hidden="true" />
+        </button>
+        <span class="tux-map__zoomctl-pct" data-zoom-percent>{{ magnifyPercent }}%</span>
+        <button
+          type="button"
+          class="tux-map__zoomctl-btn"
+          :disabled="!canMagnify"
+          aria-label="Make the diagram larger"
+          title="Zoom in (+, or Ctrl + scroll up); then drag the background to move around it"
+          @click="magnifyBy(1)"
+        >
+          <Icon name="lucide:plus" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          class="tux-map__zoomctl-btn tux-map__magnify-fit"
+          :aria-pressed="!isMagnified"
+          :aria-label="
+            isMagnified
+              ? `Fit the diagram to the width (now ${magnifyLabel} of the fitted size)`
+              : 'The diagram fits the width'
+          "
+          title="Fit to the width (0)"
+          @click="magnifyFit()"
+        >
+          <Icon name="lucide:maximize" aria-hidden="true" />
+        </button>
+      </div>
 
       <!-- Unscaled Wire Link Inspector Popover (#115, #123) -->
       <div
@@ -8989,11 +9233,17 @@ function buildSourceHref(src?: {
         </div>
         <dl class="tux-map__shortcuts-dl">
           <dt><kbd>Arrow keys</kbd></dt>
-          <dd>Move focus across diagram cards</dd>
+          <dd>Move focus across diagram cards; on the canvas itself, move a magnified diagram</dd>
           <dt><kbd>Enter</kbd> / <kbd>Space</kbd></dt>
           <dd>Select focused card (or split folded outside card)</dd>
           <dt><kbd>+</kbd> / <kbd>−</kbd></dt>
-          <dd>Zoom in to inner view or zoom out a level</dd>
+          <dd>On a card, zoom in to its inner view or out a level; on the canvas itself, magnify it or make it smaller (at Fit, − goes out a level)</dd>
+          <dt><kbd>0</kbd></dt>
+          <dd>On the canvas itself, fit the diagram to the width</dd>
+          <dt><kbd>Ctrl</kbd> + scroll, or pinch</dt>
+          <dd>Magnify the canvas around the pointer</dd>
+          <dt><kbd>Shift</kbd> + scroll, drag, or <kbd>Space</kbd> + drag</dt>
+          <dd>Move a magnified diagram</dd>
           <dt><kbd>1</kbd> – <kbd>4</kbd></dt>
           <dd>Jump to System, Containers, Components, or Infrastructure</dd>
           <dt><kbd>/</kbd> or <kbd>Ctrl+K</kbd></dt>
@@ -9130,13 +9380,44 @@ function buildSourceHref(src?: {
   }
 }
 
-/* Toolbar & Segmented Level Controls */
+/* Toolbar & Segmented Level Controls. One line at the widths a desktop map has (#273): every control
+   and every group is the map's target height (a group's 1px border is inside it), on one centre line;
+   the groups are 12px apart and the controls inside a group 8px, TUX's spacing steps. Below the width
+   the line needs, the switches go into the More menu, then the labelled toggles show their icons only
+   (their names stay, for assistive technology and in their titles); on a phone the groups wrap. */
 .tux-map__tools {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
-  margin: 0.5rem 0 0.45rem;
+  gap: var(--space-8, 8px) var(--space-12, 12px);
+  margin: var(--space-8, 8px) 0;
+}
+
+/* a label that gives way to its icon on a narrower map, and in the canvas's drawing tools */
+.tux-map__drawtools .tux-map__btn-lbl {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@container tux-map (max-width: 1249px) {
+  .tux-map__tools .tux-map__btn-lbl {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tux-map__tools .tux-map__seg button:has(.tux-map__btn-lbl) {
+    justify-content: center;
+    min-width: calc(var(--tux-map-target) - 2px);
+    padding-inline: 0;
+  }
 }
 
 .tux-map__more-wrap {
@@ -9166,10 +9447,12 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
+  gap: var(--space-8, 8px) var(--space-12, 12px);
 }
 
-@container tux-map (max-width: 760px) {
+/* the switches stay on the line only where it has room for them and for the filter's count (#273):
+   the line is about 1,340px with them, 1,160px without, and the count takes 88px more */
+@container tux-map (max-width: 1439px) {
   .tux-map__more-btn {
     display: inline-flex;
   }
@@ -9198,13 +9481,23 @@ function buildSourceHref(src?: {
   }
 }
 
+/* The breadcrumb's own line (#273), with the Wires filter at its end on the same centre line. The
+   trail takes the room the filter leaves, and the filter wraps under it, at the start, when there is none. */
 .tux-map__subbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem 1rem;
-  margin: 0.1rem 0 0.25rem;
+  gap: var(--space-8, 8px) var(--space-16, 16px);
+  min-height: var(--tux-map-target);
+  margin: 0 0 var(--space-8, 8px);
+  padding-top: var(--space-8, 8px);
+  border-top: 1px solid var(--surface-border);
+}
+
+.tux-map__subbar > nav {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .tux-map__crumb-menu-wrap,
@@ -9288,19 +9581,18 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-8, 8px);
 }
 
 .tux-map__wire-filters-lbl {
   font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-right: 0.15rem;
+  color: var(--text-secondary);
 }
 
 .tux-map__wire-filter-btn {
   min-height: var(--tux-map-target);
   padding: 0.25rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--surface-border);
   background: var(--surface-raised);
   color: var(--text-secondary);
@@ -9315,12 +9607,56 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
-.tux-map__wire-filter-btn[aria-pressed="true"] {
-  background: var(--tux-map-brand-tint);
-  border-color: var(--brand-primary);
+/* The Wires choices (#272): TUX's toggle-style chip, TuxRemovableChip with `selected`, inside a native
+   toggle button that is the map's target size and carries the pressed state and the keyboard. The
+   chip draws the look (brand fill when on, with a check, so "on" does not rest on colour); the
+   button adds nothing to it but the focus ring. */
+.tux-map__wire-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4, 4px);
+}
+
+.tux-map__wire-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tux-map-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs, 2px);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tux-map__wire-chip:focus-visible {
+  outline: none;
+}
+
+.tux-map__wire-chip:focus-visible .tux-removable-chip {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* a kind of wire this view has none of: still a choice (it holds across levels), drawn dashed */
+.tux-map__wire-chip--none-here .tux-removable-chip {
+  border-style: dashed;
+}
+
+.tux-map__wire-chip--none-here[aria-pressed="false"] .tux-removable-chip {
+  color: var(--text-secondary);
+}
+
+.tux-map__wires-note {
+  margin: 0 0 var(--space-8, 8px);
+  font-size: 0.8125rem;
   color: var(--text-primary);
-  font-family: var(--font-bold);
-  font-weight: 700;
+}
+
+/* empty, it takes no room and stays a live region (one that is not rendered is not heard) */
+.tux-map__wires-note:empty {
+  margin: 0;
 }
 
 .tux-map__trace-banner,
@@ -9364,7 +9700,8 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__seg button {
-  min-height: var(--tux-map-target);
+  /* the group's border is inside the target height */
+  min-height: calc(var(--tux-map-target) - 2px);
   font: inherit;
   font-family: var(--font-bold);
   font-size: 0.75rem;
@@ -9422,8 +9759,8 @@ function buildSourceHref(src?: {
 .tux-map__stepper .tux-map__iconbtn {
   border: 0;
   border-radius: 0;
-  height: var(--tux-map-target);
-  width: var(--tux-map-target);
+  height: calc(var(--tux-map-target) - 2px);
+  width: calc(var(--tux-map-target) - 2px);
 }
 
 .tux-map__stepper .tux-map__iconbtn:hover:not(:disabled) {
@@ -9435,7 +9772,8 @@ function buildSourceHref(src?: {
   align-items: center;
   gap: 0.4rem;
   padding: 0 0.7rem;
-  height: 32px;
+  height: calc(var(--tux-map-target) - 2px);
+  box-sizing: border-box;
   border-left: 1px solid var(--surface-border);
   border-right: 1px solid var(--surface-border);
   font-family: var(--font-bold);
@@ -9550,7 +9888,7 @@ function buildSourceHref(src?: {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
+  gap: var(--space-8, 8px);
   margin-left: auto;
 }
 
@@ -9558,7 +9896,7 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.85rem;
+  gap: var(--space-8, 8px);
 }
 
 /* a narrow map: the group may break, between the filter and the Diagram/List pair */
@@ -9588,7 +9926,7 @@ function buildSourceHref(src?: {
 .tux-map__search-input {
   min-height: var(--tux-map-target);
   padding: 0.35rem 0.6rem 0.35rem 1.7rem;
-  width: 11.5rem;
+  width: 10rem;
   font: inherit;
   font-size: 0.75rem;
   color: var(--text-primary);
@@ -9636,27 +9974,184 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
-/* the width of the magnify group (two buttons, Fit, the group's border), held in the list view */
-.tux-map__magnify-gap {
-  flex: none;
-  width: calc(var(--tux-map-target) * 2 + 3.4rem + 2px);
+/* Canvas zoom (#271): a floating group in the canvas's top-right corner, over the diagram and clear
+   of the viewport's own scrollbar; beside the details panel while it is open over the map. One
+   height for the group, the map's target size; the buttons are square and the percentage between
+   them keeps one width, so nothing moves as it changes. */
+.tux-map__zoomctl {
+  position: absolute;
+  z-index: 22;
+  top: var(--space-12, 12px);
+  right: calc(var(--space-12, 12px) + var(--space-8, 8px));
+  display: inline-flex;
+  align-items: stretch;
   height: var(--tux-map-target);
-  visibility: hidden;
+  box-sizing: border-box;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 
-.tux-map__magnify-fit {
+/* The drawing tools (`annotations`), in the canvas's top-left corner (#273): icon buttons, each named
+   by its label for assistive technology and by its title on hover, the zoom group's height and look. */
+.tux-map__drawtools {
+  position: absolute;
+  z-index: 22;
+  top: var(--space-12, 12px);
+  left: var(--space-12, 12px);
+  display: inline-flex;
+  height: var(--tux-map-target);
   box-sizing: border-box;
-  min-width: 3.4rem;
-  min-height: var(--tux-map-target);
-  padding: 0 0.4rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* With the outline open the canvas is a grid: the corner groups sit in the viewport's own cell, over
+   its corners, so they follow it beside the outline and, on a narrow map, under it */
+.tux-map__canvas--with-outline > .tux-map__viewport,
+.tux-map__canvas--with-outline > .tux-map__zoomctl,
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl,
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  align-self: start;
+  margin: var(--space-12, 12px);
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl {
+  justify-self: end;
+  margin-right: calc(var(--space-12, 12px) + var(--space-8, 8px));
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl--beside-panel {
+  margin-right: calc(min(380px, 100% - 24px) + var(--space-12, 12px) + var(--space-12, 12px));
+}
+
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  justify-self: start;
+}
+
+@container tux-map (max-width: 760px) {
+  .tux-map__canvas--with-outline > .tux-map__viewport,
+  .tux-map__canvas--with-outline > .tux-map__zoomctl,
+  .tux-map__canvas--with-outline > .tux-map__drawtools {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+.tux-map__drawtools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--tux-map-target) - 2px);
+  padding: 0;
   border: 0;
-  border-inline: 1px solid var(--surface-border);
-  background: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tux-map__drawtools button + button {
+  border-left: 1px solid var(--surface-border);
+}
+
+.tux-map__drawtools button:hover:not([aria-pressed="true"]) {
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+}
+
+.tux-map__drawtools button[aria-pressed="true"] {
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
+  box-shadow: inset 0 -3px 0 var(--brand-primary);
+}
+
+.tux-map__drawtools button > :not(.tux-map__btn-lbl) {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* a narrow canvas: the tools stand in a column at the left, so the zoom group keeps the top-right */
+@container tux-map (max-width: 640px) {
+  .tux-map__drawtools {
+    flex-direction: column;
+    width: var(--tux-map-target);
+    height: auto;
+  }
+
+  .tux-map__drawtools button {
+    width: auto;
+    height: calc(var(--tux-map-target) - 2px);
+  }
+
+  .tux-map__drawtools button + button {
+    border-left: 0;
+    border-top: 1px solid var(--surface-border);
+  }
+}
+
+/* the details panel (380px at most, 12px from the edge) is over the map: the zoom sits to its left */
+.tux-map__zoomctl--beside-panel {
+  right: calc(min(380px, 100% - 24px) + var(--space-12, 12px) + var(--space-12, 12px));
+}
+
+.tux-map__zoomctl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--tux-map-target) - 2px);
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--text-primary);
   font: inherit;
+  cursor: pointer;
+}
+
+.tux-map__zoomctl-btn + .tux-map__zoomctl-btn,
+.tux-map__zoomctl-pct + .tux-map__zoomctl-btn,
+.tux-map__zoomctl-btn + .tux-map__zoomctl-pct {
+  border-left: 1px solid var(--surface-border);
+}
+
+.tux-map__zoomctl-btn:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.tux-map__zoomctl-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tux-map__zoomctl-btn > * {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tux-map__zoomctl-pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.6rem;
+  padding: 0 var(--space-4, 4px);
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
 }
 
 .tux-map__magnify-fit[aria-pressed="true"] {
@@ -9687,8 +10182,8 @@ function buildSourceHref(src?: {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  margin: 0.25rem 0;
+  gap: var(--space-4, 4px) var(--space-8, 8px);
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: 0.875rem;
@@ -9697,7 +10192,7 @@ function buildSourceHref(src?: {
 .tux-map__crumbs li {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-8, 8px);
 }
 
 .tux-map__crumbs li + li::before {
@@ -9827,8 +10322,18 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__blast-note,
-.tux-map__blast-intent {
+/* the intent beside the line that defines it (#273): the select on the line's first row */
+.tux-map__blast-intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4, 4px) var(--space-12, 12px);
   margin: 0 0 0.55rem;
+}
+
+.tux-map__blast-intent {
+  flex: 1 1 24rem;
+  margin: 0;
   font-size: 0.75rem;
   color: var(--text-secondary);
 }
@@ -10070,6 +10575,12 @@ function buildSourceHref(src?: {
 .tux-map__viewport--dragging,
 .tux-map__viewport--dragging * {
   cursor: grabbing !important;
+}
+
+/* Space held over the canvas (#271): a press anywhere on it, a card too, pans */
+.tux-map__viewport--space-pan,
+.tux-map__viewport--space-pan * {
+  cursor: grab !important;
 }
 
 /* where the plain wheel is the page's (`wheelZoom` false, or "click" and not armed)

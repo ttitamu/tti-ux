@@ -579,6 +579,9 @@ describe("TuxArchitectureMap: a move to another card on the level (#212)", () =>
   it("a second input ends the scroll on its target, and no frame moves it after", async () => {
     const m = await magnified();
     const f = frames();
+    // the + button keeps the middle of the view (#271): both runs start from the corner
+    m.scroll.left = 0;
+    m.scroll.top = 0;
     // where it ends when it is left to run
     m.state.selectElement(m.to);
     await settle();

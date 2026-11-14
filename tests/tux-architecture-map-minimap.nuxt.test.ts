@@ -330,7 +330,7 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
   });
 
   it("is one focusable control: focus shows it and holds it, and the arrow keys move the view", async () => {
-    const { shown, settle, rest, minimap, viewport } = await mountMap();
+    const { shown, settle, rest, minimap, viewport, scrollTo } = await mountMap();
     await rest();
     expect(shown()).toBe(false);
     const el = minimap().element as HTMLElement;
@@ -339,6 +339,9 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
     expect(el.getAttribute("aria-label")).toMatch(/^Overview of this level: 4 cards/);
     expect(minimap().findAll("[tabindex]")).toHaveLength(0);
 
+    // the + button keeps the middle of the view where it was (#271): start this walk at the corner
+    await scrollTo(0, 0);
+    await rest();
     el.focus();
     await settle();
     expect(shown()).toBe(true);
