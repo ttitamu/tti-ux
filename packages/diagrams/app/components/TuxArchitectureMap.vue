@@ -8116,10 +8116,10 @@ function buildSourceHref(src?: {
       >
         <button
           v-for="[tool, label, title, icon] in ([
-            ['select', 'Select', 'Select & Inspect (V)', 'mouse-pointer'],
-            ['pen', 'Pen', 'Freehand Pen (P)', 'pen-tool'],
-            ['laser', 'Laser', 'Laser Pointer (L)', 'wand-sparkles'],
-            ['note', 'Note', 'Sticky Note (N)', 'sticky-note'],
+            ['select', 'Select', 'Select & Inspect (V)', 'lucide:mouse-pointer'],
+            ['pen', 'Pen', 'Freehand Pen (P)', 'lucide:pen-tool'],
+            ['laser', 'Laser', 'Laser Pointer (L)', 'lucide:wand-sparkles'],
+            ['note', 'Note', 'Sticky Note (N)', 'lucide:sticky-note'],
           ] as const)"
           :key="tool"
           type="button"
@@ -8127,7 +8127,8 @@ function buildSourceHref(src?: {
           :title="title"
           @click="activeTool = tool"
         >
-          <Icon :name="`lucide:${icon}`" aria-hidden="true" />
+          <!-- full names, written out: a host that ships only the icons it names reads them here -->
+          <Icon :name="icon" aria-hidden="true" />
           <span class="tux-map__btn-lbl">{{ label }}</span>
         </button>
         <button
