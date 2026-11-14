@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 00f9d354ed83f80dcb05b44205fbee69004df370d9114a9c9d85072306146597
+// SOURCE-SHA256: 8b4d759246ea1abf4ad4d65632b795f39d79daf953b0802f9ebb4ed9eddede1e
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -1889,7 +1889,9 @@ export function plainElementKindLabel(elOrKind, opts = {}) {
     if (!elOrKind)
         return "element";
     if (typeof elOrKind === "string") {
-        return TUX_MAP_ELEMENT_KIND_LABELS[elOrKind] || elOrKind;
+        return hasOwn(TUX_MAP_ELEMENT_KIND_LABELS, elOrKind)
+            ? TUX_MAP_ELEMENT_KIND_LABELS[elOrKind]
+            : elOrKind;
     }
     const id = typeof elOrKind.id === "string" ? elOrKind.id : "";
     const kind = elOrKind.kind || "";
@@ -1918,7 +1920,7 @@ export function plainElementKindLabel(elOrKind, opts = {}) {
         }
         return "function";
     }
-    return TUX_MAP_ELEMENT_KIND_LABELS[kind] || kind || "element";
+    return (hasOwn(TUX_MAP_ELEMENT_KIND_LABELS, kind) && TUX_MAP_ELEMENT_KIND_LABELS[kind]) || kind || "element";
 }
 export function elementTypeLabel(el, opts = {}) {
     const kind = plainElementKindLabel(el);
@@ -4092,7 +4094,7 @@ function buildWireInspectorDetail(from, to, kinds, linksList) {
     const perKindCounts = sorted.map(([kind, count]) => ({
         kind,
         count,
-        label: TUX_MAP_LINK_KIND_LABELS[kind] || kind,
+        label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) && TUX_MAP_LINK_KIND_LABELS[kind]) || kind,
     }));
     const cutKinds = perKindCounts.slice(2);
     const violations = [];
@@ -4777,7 +4779,7 @@ function getBlastModelTables(model, verify) {
     const tables = {
         parts,
         hostBridge: keyed ? buildHostBridge(keyed, subgraphOwners) : null,
-        metaById: buildBlastNodeMeta(model, subgraphOwners),
+        subgraphOwners,
         l4NodeIds: new Set(asObjArray(keyed?.level4?.nodes)
             .filter((n) => typeof n.id === "string" && Boolean(n.id))
             .map((n) => n.id)),
@@ -4785,6 +4787,9 @@ function getBlastModelTables(model, verify) {
     if (keyed)
         BLAST_MODEL_CACHE.set(keyed, tables);
     return tables;
+}
+function blastNodeMeta(t, model) {
+    return (t.metaById ??= buildBlastNodeMeta(model, t.subgraphOwners));
 }
 function repoPathForNodeId(id, meta) {
     if (meta?.path)
@@ -4845,144 +4850,8 @@ function isWorkflowPathNode(id, meta) {
     return /^(?:runner-smoke\/)?\.(?:forgejo|github)\/workflows\//i.test(p);
 }
 export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) {
-    const rawMaxHops = opts.maxHops === undefined ? 32 : opts.maxHops;
-    const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
-    const quietSeedOnly = opts.quietSeedOnly ?? true;
-    const intent = opts.intent ?? "default";
-    if (!TUX_MAP_VALID_BLAST_INTENTS.has(intent)) {
-        throw new RangeError(`Invalid blast intent '${String(intent)}'; expected one of: default, patch, refactor, cut, supply-chain.`);
-    }
-    const kindsSet = opts.kinds
-        ? opts.kinds instanceof Set
-            ? opts.kinds
-            : new Set(opts.kinds)
-        : null;
-    const verify = opts.verifyInputs === true;
-    const { kidsOf } = getParentTables(parentOf, verify);
-    const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
-    const seeds = new Set();
-    const dq = [];
-    const addSeed = (id) => {
-        if (typeof id === "string" && id && !seeds.has(id)) {
-            seeds.add(id);
-            dq.push(id);
-        }
-    };
-    for (const s of rawSeeds)
-        addSeed(s);
-    const { hostBridge, metaById, l4NodeIds } = getBlastModelTables(opts.model, verify);
-    if (opts.model && typeof opts.model === "object") {
-        if (typeof opts.model.level2?.boundary === "string" && opts.model.level2.boundary && seeds.has(opts.model.level2.boundary)) {
-            for (const e of asObjArray(opts.model.level2.elements)) {
-                if (!e.ref)
-                    addSeed(e.id);
-            }
-        }
-        for (const s of [...seeds]) {
-            const hosted = hostBridge?.elementsByHost.get(s);
-            if (hosted && l4NodeIds.has(s)) {
-                for (const elId of hosted)
-                    addSeed(elId);
-            }
-        }
-    }
-    while (dq.length) {
-        for (const c of kidsOf.get(dq.shift()) ?? []) {
-            addSeed(c);
-        }
-    }
-    const { into, outByFrom } = getLinkAdjacency(links, verify);
-    let truncated = false;
-    const spreadDist = new Map();
-    const spreadVia = new Map();
-    let frontier = [...seeds].sort(cmpCodepoint);
-    const q = frontier.map((id) => [id, 0]);
-    let hop = 0;
-    while (frontier.length > 0) {
-        if (hop >= maxHops) {
-            for (const x of frontier) {
-                for (const l of into.get(x) ?? []) {
-                    const y = l.from;
-                    if (seeds.has(y) || spreadDist.has(y))
-                        continue;
-                    if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) === "spread") {
-                        truncated = true;
-                        break;
-                    }
-                }
-                if (truncated)
-                    break;
-            }
-            break;
-        }
-        const nextBest = new Map();
-        for (const x of frontier) {
-            for (const l of into.get(x) ?? []) {
-                const y = l.from;
-                if (seeds.has(y) || spreadDist.has(y))
-                    continue;
-                if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) !== "spread")
-                    continue;
-                const prev = nextBest.get(y);
-                if (!prev || compareBlastLinks(l, prev) < 0) {
-                    nextBest.set(y, l);
-                }
-            }
-        }
-        const nextIds = [...nextBest.keys()].sort(cmpCodepoint);
-        for (const y of nextIds) {
-            const chosen = nextBest.get(y);
-            spreadDist.set(y, hop + 1);
-            spreadVia.set(y, chosen);
-            q.push([y, hop + 1]);
-        }
-        frontier = nextIds;
-        hop += 1;
-    }
-    const stopBest = new Map();
-    for (const [x, h] of q) {
-        if (h >= maxHops) {
-            for (const l of into.get(x) ?? []) {
-                const y = l.from;
-                if (seeds.has(y) || spreadDist.has(y) || stopBest.has(y))
-                    continue;
-                if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) === "stop") {
-                    truncated = true;
-                    break;
-                }
-            }
-            continue;
-        }
-        for (const l of into.get(x) ?? []) {
-            const y = l.from;
-            if (seeds.has(y) || spreadDist.has(y))
-                continue;
-            if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) !== "stop")
-                continue;
-            const candHop = h + 1;
-            const prev = stopBest.get(y);
-            if (!prev ||
-                candHop < prev.hop ||
-                (candHop === prev.hop && compareBlastLinks(l, prev.via) < 0)) {
-                stopBest.set(y, { hop: candHop, via: l });
-            }
-        }
-    }
-    const combined = [];
-    const mkHit = (h, via) => ({
-        hop: h,
-        via,
-        ...(via.at !== undefined ? { at: via.at } : {}),
-        ...(via.sites?.length ? { sites: [...via.sites] } : {}),
-    });
-    for (const [y, h] of spreadDist) {
-        combined.push([y, mkHit(h, spreadVia.get(y))]);
-    }
-    for (const [y, s] of stopBest) {
-        combined.push([y, mkHit(s.hop, s.via)]);
-    }
-    combined.sort((a, b) => a[1].hop - b[1].hop || cmpCodepoint(a[0], b[0]));
-    const hits = new Map(combined);
+    const { seeds, hits, truncated, kidsOf, into, outByFrom, intent, kindsSet, hostBridge, tables } = walkLinkBlastRadius(links, seedOrSeeds, parentOf, opts);
+    const metaById = blastNodeMeta(tables, opts.model);
     const collectSubtree = (rootId) => {
         const sub = new Set([rootId]);
         const queue = [[rootId, 0]];
@@ -5123,6 +4992,148 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
         buildExecImpacted,
         hostsImpacted,
     };
+}
+export function walkLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) {
+    const rawMaxHops = opts.maxHops === undefined ? 32 : opts.maxHops;
+    const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
+    const quietSeedOnly = opts.quietSeedOnly ?? true;
+    const intent = opts.intent ?? "default";
+    if (!TUX_MAP_VALID_BLAST_INTENTS.has(intent)) {
+        throw new RangeError(`Invalid blast intent '${String(intent)}'; expected one of: default, patch, refactor, cut, supply-chain.`);
+    }
+    const kindsSet = opts.kinds
+        ? opts.kinds instanceof Set
+            ? opts.kinds
+            : new Set(opts.kinds)
+        : null;
+    const verify = opts.verifyInputs === true;
+    const { kidsOf } = getParentTables(parentOf, verify);
+    const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
+    const seeds = new Set();
+    const dq = [];
+    const addSeed = (id) => {
+        if (typeof id === "string" && id && !seeds.has(id)) {
+            seeds.add(id);
+            dq.push(id);
+        }
+    };
+    for (const s of rawSeeds)
+        addSeed(s);
+    const tables = getBlastModelTables(opts.model, verify);
+    const { hostBridge, l4NodeIds } = tables;
+    if (opts.model && typeof opts.model === "object") {
+        if (typeof opts.model.level2?.boundary === "string" && opts.model.level2.boundary && seeds.has(opts.model.level2.boundary)) {
+            for (const e of asObjArray(opts.model.level2.elements)) {
+                if (!e.ref)
+                    addSeed(e.id);
+            }
+        }
+        for (const s of [...seeds]) {
+            const hosted = hostBridge?.elementsByHost.get(s);
+            if (hosted && l4NodeIds.has(s)) {
+                for (const elId of hosted)
+                    addSeed(elId);
+            }
+        }
+    }
+    while (dq.length) {
+        for (const c of kidsOf.get(dq.shift()) ?? []) {
+            addSeed(c);
+        }
+    }
+    const { into, outByFrom } = getLinkAdjacency(links, verify);
+    let truncated = false;
+    const spreadDist = new Map();
+    const spreadVia = new Map();
+    let frontier = [...seeds].sort(cmpCodepoint);
+    const q = frontier.map((id) => [id, 0]);
+    let hop = 0;
+    while (frontier.length > 0) {
+        if (hop >= maxHops) {
+            for (const x of frontier) {
+                for (const l of into.get(x) ?? []) {
+                    const y = l.from;
+                    if (seeds.has(y) || spreadDist.has(y))
+                        continue;
+                    if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) === "spread") {
+                        truncated = true;
+                        break;
+                    }
+                }
+                if (truncated)
+                    break;
+            }
+            break;
+        }
+        const nextBest = new Map();
+        for (const x of frontier) {
+            for (const l of into.get(x) ?? []) {
+                const y = l.from;
+                if (seeds.has(y) || spreadDist.has(y))
+                    continue;
+                if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) !== "spread")
+                    continue;
+                const prev = nextBest.get(y);
+                if (!prev || compareBlastLinks(l, prev) < 0) {
+                    nextBest.set(y, l);
+                }
+            }
+        }
+        const nextIds = [...nextBest.keys()].sort(cmpCodepoint);
+        for (const y of nextIds) {
+            const chosen = nextBest.get(y);
+            spreadDist.set(y, hop + 1);
+            spreadVia.set(y, chosen);
+            q.push([y, hop + 1]);
+        }
+        frontier = nextIds;
+        hop += 1;
+    }
+    const stopBest = new Map();
+    for (const [x, h] of q) {
+        if (h >= maxHops) {
+            for (const l of into.get(x) ?? []) {
+                const y = l.from;
+                if (seeds.has(y) || spreadDist.has(y) || stopBest.has(y))
+                    continue;
+                if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) === "stop") {
+                    truncated = true;
+                    break;
+                }
+            }
+            continue;
+        }
+        for (const l of into.get(x) ?? []) {
+            const y = l.from;
+            if (seeds.has(y) || spreadDist.has(y))
+                continue;
+            if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) !== "stop")
+                continue;
+            const candHop = h + 1;
+            const prev = stopBest.get(y);
+            if (!prev ||
+                candHop < prev.hop ||
+                (candHop === prev.hop && compareBlastLinks(l, prev.via) < 0)) {
+                stopBest.set(y, { hop: candHop, via: l });
+            }
+        }
+    }
+    const combined = [];
+    const mkHit = (h, via) => ({
+        hop: h,
+        via,
+        ...(via.at !== undefined ? { at: via.at } : {}),
+        ...(via.sites?.length ? { sites: [...via.sites] } : {}),
+    });
+    for (const [y, h] of spreadDist) {
+        combined.push([y, mkHit(h, spreadVia.get(y))]);
+    }
+    for (const [y, s] of stopBest) {
+        combined.push([y, mkHit(s.hop, s.via)]);
+    }
+    combined.sort((a, b) => a[1].hop - b[1].hop || cmpCodepoint(a[0], b[0]));
+    const hits = new Map(combined);
+    return { seeds, hits, truncated, kidsOf, into, outByFrom, intent, kindsSet, hostBridge, tables };
 }
 function stripLineSuffix(tech) {
     if (!tech)
@@ -7974,9 +7985,9 @@ function scoreSearchEntry(e, q, qMask, qSlashParts, qUrlPath) {
     return best;
 }
 export function searchArchitectureMap(modelOrEntries, query, opts = {}) {
-    const entries = Array.isArray(modelOrEntries)
-        ? modelOrEntries
-        : buildMapSearchIndex(modelOrEntries);
+    return searchMapEntries(Array.isArray(modelOrEntries) ? modelOrEntries : buildMapSearchIndex(modelOrEntries), query, opts);
+}
+export function searchMapEntries(entries, query, opts = {}) {
     const includePlanned = opts.includePlanned ?? true;
     const limitPerGroup = opts.limitPerGroup !== undefined && Number.isFinite(opts.limitPerGroup)
         ? Math.max(1, Math.floor(opts.limitPerGroup))

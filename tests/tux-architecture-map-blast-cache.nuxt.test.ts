@@ -19,13 +19,14 @@ import { TUX_MAP_SCHEMA, type TuxMapLevelModel } from "../packages/diagrams/app/
 
 vi.mock("../packages/diagrams/app/utils/tuxArchitectureMap", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../packages/diagrams/app/utils/tuxArchitectureMap")>();
-  return { ...mod, computeLinkBlastRadius: vi.fn(mod.computeLinkBlastRadius) };
+  return { ...mod, walkLinkBlastRadius: vi.fn(mod.walkLinkBlastRadius) };
 });
 
-const walks = vi.mocked(mapUtils.computeLinkBlastRadius);
+// the component walks with the internal walk (the public computeLinkBlastRadius adds lists it never reads)
+const walks = vi.mocked(mapUtils.walkLinkBlastRadius);
 const realWalk = (await vi.importActual<typeof import("../packages/diagrams/app/utils/tuxArchitectureMap")>(
   "../packages/diagrams/app/utils/tuxArchitectureMap",
-)).computeLinkBlastRadius;
+)).walkLinkBlastRadius;
 
 type Mounted = Awaited<ReturnType<typeof mountSuspended>>;
 const stateOf = (w: Mounted) => (w.vm as unknown as { $: { setupState: Record<string, any> } }).$.setupState;

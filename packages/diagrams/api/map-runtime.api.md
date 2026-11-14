@@ -10,7 +10,7 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-123 public, 47 internal.
+123 public, 49 internal.
 
 ### Public (123)
 
@@ -1584,7 +1584,7 @@ export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "rese
 export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 ```
 
-### Internal (47)
+### Internal (49)
 
 - `GRID_METRICS` (const)
 - `LOD_THRESHOLDS` (const)
@@ -1626,11 +1626,13 @@ export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 - `routeDeploymentWires` (function)
 - `routeGridWires` (function)
 - `screenToWorld` (function)
+- `searchMapEntries` (function)
 - `setOwnProp` (function)
 - `shortWireLabel` (function)
 - `splitNodeId` (function)
 - `stripNodeKindPrefix` (function)
 - `suggestCloseNodeIds` (function)
+- `walkLinkBlastRadius` (function)
 - `worldToScreen` (function)
 - `zoomAroundScreenPoint` (function)
 

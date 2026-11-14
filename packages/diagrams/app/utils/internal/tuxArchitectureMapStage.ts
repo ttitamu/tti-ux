@@ -321,6 +321,26 @@ export function middleEllipsizeFolderName(name: string, kind?: string, id?: stri
   return `${name.slice(0, keep)}…${name.slice(name.length - keep)}`;
 }
 
+function addViolations(seen: Set<string>, out: TuxMapLinkViolation[], list: readonly TuxMapLinkViolation[] | undefined): void {
+  for (const v of list ?? []) {
+    const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+    if (!seen.has(vk)) {
+      seen.add(vk);
+      out.push(v);
+    }
+  }
+}
+
+function kindCountRows(entries: Iterable<[string, number]>): TuxMapWireInspectorDetail["perKindCounts"] {
+  return [...entries]
+    .sort((x, y) => y[1] - x[1] || cmpCodepoint(x[0], y[0]))
+    .map(([kind, count]) => ({
+      kind,
+      count,
+      label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
+    }));
+}
+
 function mergeWireDetails(
   a: TuxMapWireInspectorDetail | undefined,
   b: TuxMapWireInspectorDetail,
@@ -333,22 +353,11 @@ function mergeWireDetails(
   const kindCounts = new Map<string, number>();
   for (const pk of a.perKindCounts) kindCounts.set(pk.kind, (kindCounts.get(pk.kind) ?? 0) + pk.count);
   for (const pk of b.perKindCounts) kindCounts.set(pk.kind, (kindCounts.get(pk.kind) ?? 0) + pk.count);
-  const perKindCounts = [...kindCounts.entries()]
-    .sort((x, y) => y[1] - x[1] || cmpCodepoint(x[0], y[0]))
-    .map(([kind, count]) => ({
-      kind,
-      count,
-      label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
-    }));
+  const perKindCounts = kindCountRows(kindCounts.entries());
   const seenViol = new Set<string>();
   const violations: TuxMapLinkViolation[] = [];
-  for (const v of [...a.violations, ...b.violations]) {
-    const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
-    if (!seenViol.has(vk)) {
-      seenViol.add(vk);
-      violations.push(v);
-    }
-  }
+  addViolations(seenViol, violations, a.violations);
+  addViolations(seenViol, violations, b.violations);
   return {
     from,
     to,
@@ -1247,15 +1256,7 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
     const collectSideViolations = (o: TuxMapLiftedSide): TuxMapLinkViolation[] | undefined => {
       const outV: TuxMapLinkViolation[] = [];
       const seen = new Set<string>();
-      for (const w of o.wires) {
-        for (const v of w.violations ?? []) {
-          const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
-          if (!seen.has(vk)) {
-            seen.add(vk);
-            outV.push(v);
-          }
-        }
-      }
+      for (const w of o.wires) addViolations(seen, outV, w.violations);
       return outV.length ? outV : undefined;
     };
 
@@ -1426,31 +1427,11 @@ function finishStage(
         const k = ml.kind || "uses";
         kindMap.set(k, (kindMap.get(k) ?? 0) + 1);
       }
-      const perKindCounts = [...kindMap.entries()]
-        .sort((a, b) => b[1] - a[1] || cmpCodepoint(a[0], b[0]))
-        .map(([kind, count]) => ({
-          kind,
-          count,
-          label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
-        }));
+      const perKindCounts = kindCountRows(kindMap.entries());
       const seenV = new Set<string>();
       const violations: TuxMapLinkViolation[] = [];
-      for (const v of r.violations ?? []) {
-        const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
-        if (!seenV.has(vk)) {
-          seenV.add(vk);
-          violations.push(v);
-        }
-      }
-      for (const ml of matched) {
-        for (const v of ml.violations ?? []) {
-          const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
-          if (!seenV.has(vk)) {
-            seenV.add(vk);
-            violations.push(v);
-          }
-        }
-      }
+      addViolations(seenV, violations, r.violations);
+      for (const ml of matched) addViolations(seenV, violations, ml.violations);
       wireDetails[wk] = {
         from: r.from,
         to: r.to,

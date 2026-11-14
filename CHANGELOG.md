@@ -18,6 +18,15 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: about 2.6 KB smaller, the same map (#275)
+
+- **What it no longer carries.** The map's blast radius runs an internal walk (`walkLinkBlastRadius`) that returns only what the map draws; the public `computeLinkBlastRadius()` is that walk plus its six further lists (blockers, co-cut candidates, tests, stamps, build steps, hosts), unchanged. Search runs `searchMapEntries()` over the entries the map already built, so the index builder for a raw model stays out of the map's payload; `searchArchitectureMap()` is unchanged. Both new functions are internal.
+- **Smaller code.** Repeated stage helpers are shared, 33 own-key guards on maps that have no prototype are gone, the legend, the drawing tools and the list view's two link lists are loops, three copies of the drill-in and the level jump share one helper, unused fields and a dead function are removed, and a few selector lists are merged.
+- **A fix found on the way.** A kind or a link kind named like an `Object.prototype` member (`constructor`, `toString`) read the prototype's function as its label; the kind labels now read own keys only.
+- The payload goes from 105,766 B to 103,113 B (gzip -9, macOS) and the size budget from 106,500 B to 104,000 B. The blast radius under every intent and the search results were compared before and after on the docs model and the conformance fixtures: no difference.
+
+**To check when upgrading:** nothing in the public API changed. A test that spies on `computeLinkBlastRadius` to count the map's walks should spy on `walkLinkBlastRadius`.
+
 ### Changed — Architecture map: the toolbar is one aligned line, and the breadcrumb has its own (#273)
 
 - **Why it looked cramped.** The bar wrapped into two rows at 1,754 and 1,920 px and three at 1,440 px (a docs page at those widths gives the map 1,320, 1,486 and 1,006 px): A− Fit A+ and the four drawing tools did not fit, and the trailing group broke onto a row of its own. The controls were not one height either: a group's buttons were the target height and its border made it 2 px taller than a lone button, and the level's name between − and + was 32 px tall in a 46 px stepper. Gaps were five different rem values.

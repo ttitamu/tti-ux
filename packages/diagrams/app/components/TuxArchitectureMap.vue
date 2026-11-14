@@ -15,7 +15,7 @@ import {
   classifyBlastLink,
   cmpCodepoint,
   compareBlastLinks,
-  computeLinkBlastRadius,
+  walkLinkBlastRadius,
   elementTypeLabel,
   extendMapParentIndex,
   extractModelLinksKept,
@@ -35,7 +35,7 @@ import {
   getSmoothedFreehandSvgPath,
   routeDeploymentWires,
   routeGridWires,
-  searchArchitectureMap,
+  searchMapEntries,
   type TuxMapBlastIntent,
   type TuxMapBlastLinkClass,
   type TuxMapDeploymentNode,
@@ -776,7 +776,7 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapNormalized
   if (hasOwn(M.subgraphs, canonical) && M.subgraphs[canonical]!.elements.length > 0) {
     return M.subgraphs[canonical]!;
   }
-  const el = hasOwn(byId.value, canonical) ? byId.value[canonical] : undefined;
+  const el = byId.value[canonical];
   if (
     el?.subgraphRef &&
     hasOwn(M.subgraphs, el.subgraphRef) &&
@@ -791,7 +791,7 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapNormalized
       rels: el.childRels ?? [],
     };
   }
-  const dn = hasOwn(resById.value, canonical) ? resById.value[canonical] : undefined;
+  const dn = resById.value[canonical];
   if (
     dn?.subgraphRef &&
     hasOwn(M.subgraphs, dn.subgraphRef) &&
@@ -956,14 +956,14 @@ function hasLazySubgraphRef(id: string): boolean {
 function lacksLazySubgraph(id: string): boolean {
   const M = activeModel.value;
   if (hasOwn(M.subgraphs, id) && M.subgraphs[id]!.elements.length > 0) return false;
-  const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
+  const el = byId.value[id];
   if (el?.subgraphRef) {
     if (hasOwn(M.subgraphs, el.subgraphRef) && M.subgraphs[el.subgraphRef]!.elements.length > 0) {
       return false;
     }
     return true;
   }
-  const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+  const dn = resById.value[id];
   if (dn?.subgraphRef) {
     if (hasOwn(M.subgraphs, dn.subgraphRef) && M.subgraphs[dn.subgraphRef]!.elements.length > 0) {
       return false;
@@ -976,7 +976,7 @@ function lacksLazySubgraph(id: string): boolean {
 function hasFractalSubgraph(id: string): boolean {
   const M = activeModel.value;
   if (hasOwn(M.subgraphs, id) && M.subgraphs[id]!.elements.length > 0) return true;
-  const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
+  const el = byId.value[id];
   if (el) {
     if (el.children?.length) return true;
     if (
@@ -987,7 +987,7 @@ function hasFractalSubgraph(id: string): boolean {
       return true;
     }
   }
-  const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+  const dn = resById.value[id];
   if (dn) {
     if (dn.children?.length) return true;
     if (
@@ -1637,7 +1637,7 @@ const selectionBlastBase = computed(() => {
   if (!id || (!byId.value[id] && !resById.value[id])) return null;
   const links = effectiveModelLinks.value;
   if (!links.length) return null;
-  return computeLinkBlastRadius(links, id, parentOf.value, {
+  return walkLinkBlastRadius(links, id, parentOf.value, {
     model: M,
     intent: blastIntent.value,
   });
@@ -1686,7 +1686,7 @@ const selectionBlast = computed(() => {
   const id = selectedId.value;
   return (
     selectionBlastBase.value &&
-    computeLinkBlastRadius(effectiveModelLinks.value, id!, parentOf.value, {
+    walkLinkBlastRadius(effectiveModelLinks.value, id!, parentOf.value, {
       model: activeModel.value,
       intent: blastIntent.value,
       kinds: activeUsageKindsSet.value,
@@ -1698,7 +1698,6 @@ const selectionBlast = computed(() => {
 interface SelectedViolationEntry {
   key: string;
   direction: "in" | "out";
-  peerId: string;
   peerName: string;
   kindLabel: string;
   at?: string;
@@ -1706,7 +1705,6 @@ interface SelectedViolationEntry {
   rule: string;
   message?: string;
   fix?: string;
-  severity: "error" | "warning";
 }
 
 const selectedViolations = computed<SelectedViolationEntry[]>(() => {
@@ -1742,7 +1740,6 @@ const selectedViolations = computed<SelectedViolationEntry[]>(() => {
       out.push({
         key: dedupKey,
         direction,
-        peerId,
         peerName,
         kindLabel,
         ...(l.at ? { at: l.at } : {}),
@@ -1750,7 +1747,6 @@ const selectedViolations = computed<SelectedViolationEntry[]>(() => {
         rule: v.rule,
         ...(v.message ? { message: v.message } : {}),
         ...(v.fix ? { fix: v.fix } : {}),
-        severity: v.severity === "warning" ? "warning" : "error",
       });
     }
   }
@@ -1758,7 +1754,7 @@ const selectedViolations = computed<SelectedViolationEntry[]>(() => {
 });
 
 // Directed spreading path view between `selectedId` and `localTraceTarget` (`tti/tti-ux#125`)
-const activeTraceResult = computed<(TuxMapTraceResult & { from: string; to: string; peerId: string }) | null>(() => {
+const activeTraceResult = computed<(TuxMapTraceResult & { from: string; to: string }) | null>(() => {
   const sel = selectedId.value;
   const tgt = localTraceTarget.value;
   if (!sel || !tgt || sel === tgt || !effectiveModelLinks.value.length) return null;
@@ -1766,12 +1762,12 @@ const activeTraceResult = computed<(TuxMapTraceResult & { from: string; to: stri
     allowStoppingLastHop: true,
   });
   if (fromDependent.found) {
-    return { ...fromDependent, from: tgt, to: sel, peerId: tgt };
+    return { ...fromDependent, from: tgt, to: sel };
   }
   const forward = traceSpreadingPath(sel, tgt, activeModel.value, {
     allowStoppingLastHop: false,
   });
-  return { ...forward, from: sel, to: tgt, peerId: tgt };
+  return { ...forward, from: sel, to: tgt };
 });
 
 const stageTraceState = computed<{ nodeIds: Set<string>; wireIds: Set<string> } | null>(() => {
@@ -1834,8 +1830,8 @@ const traceCandidateItems = computed<{ id: string; name: string; sub: string }[]
   const seen = new Set<string>([sel]);
   const pushItem = (id: string, subHint?: string) => {
     if (!id || seen.has(id) || id.startsWith("@more-")) return;
-    const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
-    const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+    const el = byId.value[id];
+    const dn = resById.value[id];
     const name = el?.name || dn?.title || stripNodeKindPrefix(id);
     const sub = subHint || el?.source?.path || plainElementKindLabel(el || dn?.kind || "resource");
     if (q && !name.toLowerCase().includes(q) && !sub.toLowerCase().includes(q) && !id.toLowerCase().includes(q)) {
@@ -2038,7 +2034,6 @@ const selectionUsages = computed(() => {
     deeperCount,
     hiddenMentionsCount,
     groups: [...groupsMap.values()],
-    shownCount: shownRows.length,
     showAllTotal: targetFullCount,
     hasMore,
     truncated: sb.truncated,
@@ -2186,7 +2181,7 @@ const branchBlast = computed(() => {
         // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
         return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
       });
-  const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
+  const diffBlast = walkLinkBlastRadius(links, seedIds, parentOf.value, {
     model: M,
     intent: blastIntent.value,
   });
@@ -2302,8 +2297,8 @@ const blastFade = computed<{ of: "selection" | "change"; text: string } | null>(
   const id = selectedId.value;
   if (id && selectionBlast.value) {
     const name =
-      (hasOwn(byId.value, id) ? byId.value[id]?.name : undefined) ||
-      (hasOwn(resById.value, id) ? resById.value[id]?.title : undefined) ||
+      byId.value[id]?.name ||
+      resById.value[id]?.title ||
       id;
     return { of: "selection", text: `Blast radius of ${name}: it and what depends on it are lit. ${rest}` };
   }
@@ -2331,7 +2326,7 @@ const blastIntentVsGeneral = computed<{ n: number; general: number; same: boolea
   const walk = sb || branchBlast.value.diffBlast;
   // no links to walk: the change's neighbours are lit by the wires, whatever the intent
   if (!walk) return { n: br.impactedIds.size, general: br.impactedIds.size, same: true };
-  const g = computeLinkBlastRadius(effectiveModelLinks.value, walk.seeds, parentOf.value, {
+  const g = walkLinkBlastRadius(effectiveModelLinks.value, walk.seeds, parentOf.value, {
     model: activeModel.value,
     kinds: sb ? activeUsageKindsSet.value : undefined,
   });
@@ -2412,7 +2407,7 @@ const renderedCards = computed(() =>
       hostIds.length > 0
         ? (() => {
             const firstId = hostIds[0]!;
-            const firstTitle = (hasOwn(resById.value, firstId) ? resById.value[firstId]?.title : undefined) || firstId;
+            const firstTitle = resById.value[firstId]?.title || firstId;
             return hostIds.length > 1
               ? `Runs on ${firstTitle} +${hostIds.length - 1}`
               : `Runs on ${firstTitle}`;
@@ -2454,7 +2449,6 @@ const renderedCards = computed(() =>
             footer: Boolean(live || chip || extraChips.length > 0 || diffBadge),
           });
     return {
-      el: e,
       id: e.id,
       parent: e.parent || "",
       name: displayName,
@@ -2669,7 +2663,7 @@ const mapSearchIndex = computed<TuxMapSearchEntry[]>(() => {
 });
 
 const goToGroupResults = computed<TuxMapSearchGroupResult[]>(() =>
-  searchArchitectureMap(mapSearchIndex.value, goToQuery.value, {
+  searchMapEntries(mapSearchIndex.value, goToQuery.value, {
     includePlanned: showPlanned.value,
   }).groups,
 );
@@ -3002,6 +2996,20 @@ function applyStageHighlight(rawId: string | null) {
     }
     return found.length ? found : undefined;
   };
+  /** Lights the foreground paths of the wires `ids`, each once. */
+  const lightWires = (ids: Iterable<string>) => {
+    for (const wid of ids) {
+      const ws = fgWiresFor(wid);
+      if (!ws) continue;
+      for (let i = 0; i < ws.length; i++) {
+        const w = ws[i]!;
+        if (!w.classList.contains("tux-map__wire-fg--on")) {
+          w.classList.add("tux-map__wire-fg--on");
+          cache.litWires.push(w);
+        }
+      }
+    }
+  };
 
   // Turn off previously lit wires and labels in O(k)
   for (let i = 0; i < cache.litWires.length; i++) {
@@ -3015,19 +3023,7 @@ function applyStageHighlight(rawId: string | null) {
   cache.litLabels.length = 0;
 
   const tr = stageTraceState.value;
-  if (tr) {
-    for (const wid of tr.wireIds) {
-      const ws = fgWiresFor(wid);
-      if (!ws) continue;
-      for (let i = 0; i < ws.length; i++) {
-        const w = ws[i]!;
-        if (!w.classList.contains("tux-map__wire-fg--on")) {
-          w.classList.add("tux-map__wire-fg--on");
-          cache.litWires.push(w);
-        }
-      }
-    }
-  }
+  if (tr) lightWires(tr.wireIds);
 
   const searchSet = matchingSearchIds.value;
   if (searchSet) {
@@ -3052,17 +3048,7 @@ function applyStageHighlight(rawId: string | null) {
           br.directIds.has(c.id) || br.impactedIds.has(c.id) || Boolean(tr?.nodeIds.has(c.id)),
         );
       }
-      for (const wid of br.impactedWires) {
-        const ws = fgWiresFor(wid);
-        if (!ws) continue;
-        for (let i = 0; i < ws.length; i++) {
-          const w = ws[i]!;
-          if (!w.classList.contains("tux-map__wire-fg--on")) {
-            w.classList.add("tux-map__wire-fg--on");
-            cache.litWires.push(w);
-          }
-        }
-      }
+      lightWires(br.impactedWires);
       return;
     }
     cache.bgSvg?.classList.remove("tux-map__wires--has-on");
@@ -3125,19 +3111,7 @@ function applyStageHighlight(rawId: string | null) {
   const neighborSet = openNeighbors ?? cache.neighborsByNode.get(key);
   const boundLit = Boolean(neighborSet?.has("@bound") || key === "@bound");
   const br = rawId === selectedId.value ? blastRadiusState.value : null;
-  if (br) {
-    for (const wid of br.impactedWires) {
-      const ws = fgWiresFor(wid);
-      if (!ws) continue;
-      for (let i = 0; i < ws.length; i++) {
-        const w = ws[i]!;
-        if (!w.classList.contains("tux-map__wire-fg--on")) {
-          w.classList.add("tux-map__wire-fg--on");
-          cache.litWires.push(w);
-        }
-      }
-    }
-  }
+  if (br) lightWires(br.impactedWires);
   for (let i = 0; i < cache.cards.length; i++) {
     const c = cache.cards[i]!;
     const isLit =
@@ -4101,9 +4075,9 @@ onBeforeUnmount(() => {
 function resolveItemById(id: string | null): TuxMapLevelElement | TuxMapDeploymentNode | null {
   if (!id) return null;
   if (currentLevel.value === 4) {
-    return (hasOwn(resById.value, id) ? resById.value[id] : undefined) ?? (hasOwn(byId.value, id) ? byId.value[id] : undefined) ?? null;
+    return (resById.value[id]) ?? (byId.value[id]) ?? null;
   }
-  return (hasOwn(byId.value, id) ? byId.value[id] : undefined) ?? (hasOwn(resById.value, id) ? resById.value[id] : undefined) ?? null;
+  return (byId.value[id]) ?? (resById.value[id]) ?? null;
 }
 
 function setSelectionAndEmit(rawId: string | null, silentAnnounce = false) {
@@ -4207,7 +4181,7 @@ function onMapDblClickCapture(ev: MouseEvent) {
 /** What a double-click on the card `id` does: go to where an outside card lives, or zoom in. */
 function openCardByDoubleClick(id: string) {
   if (currentLevel.value === 4) {
-    const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+    const dn = resById.value[id];
     if (dn && canZoomDeployNode(dn)) zoomIntoElement(id);
     return;
   }
@@ -4474,6 +4448,28 @@ function goToLevel(
   });
 }
 
+/** Goes to Level 2, 1 or 4 where `id` is one of the level's own cards, chosen; false where it is none. */
+function goToOwnLevel(id: string, name: string): boolean {
+  const M = activeModel.value;
+  const lvl: TuxMapLevelNumber | 0 = M.level2.elements.some((e) => !e.ref && e.id === id)
+    ? 2
+    : M.level1.elements.some((e) => e.id === id)
+      ? 1
+      : hasOwn(resById.value, id)
+        ? 4
+        : 0;
+  if (!lvl) return false;
+  drillStack.value = [];
+  goToLevel(lvl, {
+    nextSel: id,
+    targetCardId: id,
+    inward: lvl === 4 || (lvl === 2 && currentLevel.value < 2),
+    hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
+    announcement: `Went to Level ${lvl}: ${name}.`,
+  });
+  return true;
+}
+
 function canRevealElement(rawId: string): boolean {
   const id = resolveAliasId(rawId) ?? rawId;
   if (parentOf.value.has(id)) return true;
@@ -4505,8 +4501,8 @@ function revealElement(rawId: string) {
     }
   }
   const name =
-    (hasOwn(byId.value, id) ? byId.value[id]?.name : undefined) ||
-    (hasOwn(resById.value, id) ? resById.value[id]?.title : undefined) ||
+    byId.value[id]?.name ||
+    resById.value[id]?.title ||
     id;
   if (p) {
     const lvl = levelForFocus(p);
@@ -4519,34 +4515,7 @@ function revealElement(rawId: string) {
       hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
       announcement: `Went to Level ${lvl}: ${name}.`,
     });
-  } else if (M.level2.elements.some((e) => !e.ref && e.id === id)) {
-    drillStack.value = [];
-    goToLevel(2, {
-      nextSel: id,
-      targetCardId: id,
-      inward: currentLevel.value < 2,
-      hudLabel: `Level ${currentLevel.value} → Level 2 · ${name}`,
-      announcement: `Went to Level 2: ${name}.`,
-    });
-  } else if (M.level1.elements.some((e) => e.id === id)) {
-    drillStack.value = [];
-    goToLevel(1, {
-      nextSel: id,
-      targetCardId: id,
-      inward: false,
-      hudLabel: `Level ${currentLevel.value} → Level 1 · ${name}`,
-      announcement: `Went to Level 1: ${name}.`,
-    });
-  } else if (hasOwn(resById.value, id)) {
-    drillStack.value = [];
-    goToLevel(4, {
-      nextSel: id,
-      targetCardId: id,
-      inward: true,
-      hudLabel: `Level ${currentLevel.value} → Level 4 · ${name}`,
-      announcement: `Went to Level 4: ${name}.`,
-    });
-  } else {
+  } else if (!goToOwnLevel(id, name)) {
     return;
   }
   nextTick(() => {
@@ -4597,8 +4566,8 @@ async function hydrateLazySubgraph(
   if (!resolver) return { sg: null, cancelled: true };
   const seq = ++resolveReqSeq;
   loadingSubgraphId.value = id;
-  const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
-  const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+  const el = byId.value[id];
+  const dn = resById.value[id];
   const refKey = el?.subgraphRef || dn?.subgraphRef;
   const key = refKey || id;
   try {
@@ -4662,6 +4631,22 @@ async function resolveAndZoomIntoLazySubgraph(id: string) {
   }
 }
 
+/** Into the fractal level inside `id` (5 or deeper), from a card named `name`. */
+function drillInto(id: string, name: string, stack: { level: number; focusId: string }[]) {
+  const nextLvl = fractalZoomLevelFor(id);
+  drillStack.value = stack;
+  const sg = getSubgraphForNode(id);
+  emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
+  goToLevel(nextLvl, {
+    nextFocus: id,
+    nextSel: null,
+    fromCardId: id,
+    inward: true,
+    hudLabel: `Level ${currentLevel.value} → Level ${nextLvl} · ${name}`,
+    announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || name}.`,
+  });
+}
+
 function zoomIntoElement(rawId: string) {
   const id = resolveAliasId(rawId) ?? rawId;
   if (hasLazySubgraphRef(id)) {
@@ -4675,24 +4660,13 @@ function zoomIntoElement(rawId: string) {
 
   // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
   if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
-    const inCurrentView = isCurrentViewChild(id);
-    const nextLvl = fractalZoomLevelFor(id);
-    drillStack.value = inCurrentView
-      ? [
-          ...drillStack.value,
-          { level: currentLevel.value, focusId: focusId.value || "" },
-        ]
-      : drillStackFor(id);
-    const sg = getSubgraphForNode(id);
-    emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
-    goToLevel(nextLvl, {
-      nextFocus: id,
-      nextSel: null,
-      fromCardId: id,
-      inward: true,
-      hudLabel: `Level ${currentLevel.value} → Level ${nextLvl} · ${itemName}`,
-      announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || itemName}.`,
-    });
+    drillInto(
+      id,
+      itemName,
+      isCurrentViewChild(id)
+        ? [...drillStack.value, { level: currentLevel.value, focusId: focusId.value || "" }]
+        : drillStackFor(id),
+    );
     return;
   }
 
@@ -4701,18 +4675,7 @@ function zoomIntoElement(rawId: string) {
   if (currentLevel.value === 1) {
     if (!canZoomElement(e)) return;
     if (hasFractalSubgraph(id) && !(e.zoom === 2 || id === activeModel.value.level2.boundary)) {
-      const nextLvl = Math.max(5, levelForFocus(id));
-      drillStack.value = drillStackFor(id);
-      const sg = getSubgraphForNode(id);
-      emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
-      goToLevel(nextLvl, {
-        nextFocus: id,
-        nextSel: null,
-        fromCardId: id,
-        inward: true,
-        hudLabel: `Level 1 → Level ${nextLvl} · ${e.name}`,
-        announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`,
-      });
+      drillInto(id, e.name, drillStackFor(id));
       return;
     }
     const isBoundarySystem = id === activeModel.value.level2.boundary || e.zoom === 2;
@@ -4739,20 +4702,7 @@ function zoomIntoElement(rawId: string) {
       });
       return;
     }
-    if (hasFractalSubgraph(id)) {
-      const nextLvl = Math.max(5, levelForFocus(id));
-      drillStack.value = drillStackFor(id);
-      const sg = getSubgraphForNode(id);
-      emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
-      goToLevel(nextLvl, {
-        nextFocus: id,
-        nextSel: null,
-        fromCardId: id,
-        inward: true,
-        hudLabel: `Level 2 → Level ${nextLvl} · ${e.name}`,
-        announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`,
-      });
-    }
+    if (hasFractalSubgraph(id)) drillInto(id, e.name, drillStackFor(id));
     // Never fall back to Level 4 or jump to another sibling card when zooming a leaf (#116)
     return;
   }
@@ -4821,7 +4771,7 @@ function zoomOutLevel(fromHoveredId?: string | null) {
     );
     const targetFocus = hostedContainer || focusId.value;
     if (targetFocus && (getLevel3Kids(activeModel.value, targetFocus)?.length ?? 0) > 0) {
-      const cName = (hasOwn(byId.value, targetFocus) ? byId.value[targetFocus]?.name : undefined) ?? targetFocus;
+      const cName = byId.value[targetFocus]?.name ?? targetFocus;
       goToLevel(3, {
         nextFocus: targetFocus,
         nextSel: null,
@@ -4854,7 +4804,7 @@ function zoomOutLevel(fromHoveredId?: string | null) {
     });
   } else if (currentLevel.value === 2) {
     const sysId = activeModel.value.level2.boundary;
-    const sysName = (hasOwn(byId.value, sysId) ? byId.value[sysId]?.name : undefined) ?? "System context";
+    const sysName = byId.value[sysId]?.name ?? "System context";
     goToLevel(1, {
       nextSel: null,
       fromCardId: fromHoveredId ?? null,
@@ -4876,7 +4826,7 @@ function openLevel3FromToolbar() {
     nextFocus: candidate,
     fromCardId: currentLevel.value === 2 ? candidate : null,
     inward: currentLevel.value < 3,
-    announcement: `Zoomed in to Level 3: internal components of ${(hasOwn(byId.value, candidate) ? byId.value[candidate]?.name : undefined) || candidate}.`,
+    announcement: `Zoomed in to Level 3: internal components of ${byId.value[candidate]?.name || candidate}.`,
   });
 }
 
@@ -4893,8 +4843,8 @@ const currentStratumShort = computed(() => {
 const stepInTargetId = computed<string | null>(() => {
   const sel = selectedId.value;
   if (sel) {
-    const e = hasOwn(byId.value, sel) ? byId.value[sel] : undefined;
-    const dn = hasOwn(resById.value, sel) ? resById.value[sel] : undefined;
+    const e = byId.value[sel];
+    const dn = resById.value[sel];
     if ((e && canZoomElement(e)) || (dn && canZoomDeployNode(dn))) {
       return sel;
     }
@@ -4914,18 +4864,13 @@ const stepInTargetId = computed<string | null>(() => {
     const firstZoomableL2 = stageData.value.els.find((e) => !e.mini && canZoomElement(e));
     return firstZoomableL2?.id ?? null;
   }
-  if (currentLevel.value === 3) {
-    const fractalChild = stageData.value.els.find(
-      (e) => !e.mini && (hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)),
-    );
-    return fractalChild?.id ?? null;
-  }
   if (currentLevel.value === 4) {
     const fractalDeploy = stageData.value.deployNodes.find(
       (n) => hasFractalSubgraph(n.id) || hasLazySubgraphRef(n.id),
     );
     return fractalDeploy?.id ?? null;
   }
+  // Level 3 and from 5 on: the first card with a level inside it
   const deeperChild = stageData.value.els.find(
     (e) => !e.mini && (hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)),
   );
@@ -4938,7 +4883,7 @@ const canStepIn = computed(() => Boolean(stepInTargetId.value));
 const stepInTitle = computed<string>(() => {
   const target = stepInTargetId.value;
   if (!target) return "Zoom in a level (+)";
-  const e = hasOwn(byId.value, target) ? byId.value[target] : undefined;
+  const e = byId.value[target];
   let lvl = fractalZoomLevelFor(target);
   if (currentLevel.value === 1 && e && (e.zoom === 2 || target === activeModel.value.level2.boundary)) lvl = 2;
   else if (currentLevel.value === 2 && e && !e.ref && (getLevel3Kids(activeModel.value, target)?.length ?? 0) > 0) lvl = 3;
@@ -4970,21 +4915,8 @@ function stepInLevel() {
 
 function toggleInfrastructureView() {
   if (currentLevel.value === 4) {
-    if (preInfraState.value) {
-      const saved = preInfraState.value;
-      preInfraState.value = null;
-      drillStack.value = [...saved.drillStack];
-      goToLevel(saved.level, {
-        nextFocus: saved.focusId,
-        nextSel: saved.selectedId,
-        targetCardId: saved.selectedId ?? saved.focusId,
-        inward: false,
-        hudLabel: `Level 4 → Level ${saved.level}`,
-        announcement: `Returned to Level ${saved.level}.`,
-      });
-    } else {
-      zoomOutLevel();
-    }
+    // zoomOutLevel goes back to where Infrastructure was opened from, as this toggle does
+    zoomOutLevel();
   } else {
     preInfraState.value = {
       level: currentLevel.value,
@@ -5096,11 +5028,7 @@ function onViewportWheel(ev: WheelEvent) {
     }
   }
 
-  const candidateId =
-    lockedWheelCardId ||
-    (!isZoomIn
-      ? directCardId || proximityCard.value?.id || currentHoveredId || selectedId.value
-      : null);
+  const candidateId = lockedWheelCardId;
   const canZoomInCandidate =
     Boolean(candidateId && isCardIdZoomable(candidateId)) ||
     (currentLevel.value === 1 &&
@@ -5194,9 +5122,6 @@ function onViewportWheel(ev: WheelEvent) {
 
   if (isZoomIn) {
     let id = resolvedId;
-    if (!id) {
-      id = findNearestCardToPoint(pt.x, pt.y, Infinity, true, true)?.id ?? null;
-    }
     if (!id && currentLevel.value === 1) {
       id = activeModel.value.level2.boundary;
     }
@@ -5220,36 +5145,10 @@ function jumpToSearchEntry(entry: TuxMapSearchEntry) {
   goToOpen.value = false;
   goToReturnFocusEl = null;
 
-  const M = activeModel.value;
   if (parentOf.value.has(targetId) || vendoredCopyIndex.value.copyToCanonical.has(targetId)) {
     revealElement(targetId);
-  } else if (M.level2.elements.some((e) => !e.ref && e.id === targetId)) {
-    drillStack.value = [];
-    goToLevel(2, {
-      nextSel: targetId,
-      targetCardId: targetId,
-      inward: currentLevel.value < 2,
-      hudLabel: `Level ${currentLevel.value} → Level 2 · ${entry.name}`,
-      announcement: `Went to Level 2: ${entry.name}.`,
-    });
-  } else if (M.level1.elements.some((e) => e.id === targetId)) {
-    drillStack.value = [];
-    goToLevel(1, {
-      nextSel: targetId,
-      targetCardId: targetId,
-      inward: false,
-      hudLabel: `Level ${currentLevel.value} → Level 1 · ${entry.name}`,
-      announcement: `Went to Level 1: ${entry.name}.`,
-    });
-  } else if (hasOwn(resById.value, targetId)) {
-    drillStack.value = [];
-    goToLevel(4, {
-      nextSel: targetId,
-      targetCardId: targetId,
-      inward: true,
-      hudLabel: `Level ${currentLevel.value} → Level 4 · ${entry.name}`,
-      announcement: `Went to Level 4: ${entry.name}.`,
-    });
+  } else if (goToOwnLevel(targetId, entry.name)) {
+    // gone to its level
   } else if (hasOwn(byId.value, targetId)) {
     selectElement(targetId);
   }
@@ -5998,14 +5897,14 @@ const inspectedWireDetail = computed(() => {
   if (!det) return null;
   const boundName =
     (focusId.value &&
-      ((hasOwn(byId.value, focusId.value) ? byId.value[focusId.value]?.name : undefined) ||
-        (hasOwn(resById.value, focusId.value) ? resById.value[focusId.value]?.title : undefined))) ||
+      (byId.value[focusId.value]?.name ||
+        resById.value[focusId.value]?.title)) ||
     "Current boundary";
   const nameOf = (id: string) =>
     id === "@bound"
       ? boundName
-      : (hasOwn(byId.value, id) ? byId.value[id]?.name : undefined) ||
-        (hasOwn(resById.value, id) ? resById.value[id]?.title : undefined) ||
+      : byId.value[id]?.name ||
+        resById.value[id]?.title ||
         id;
   const lbl = routedSvg.value.labels.find((l) => wirePairKey(l.from, l.to) === key);
   const scale = stageScale.value || 1;
@@ -6174,8 +6073,8 @@ const selectedSplitParent = computed<{ id: string; name: string } | null>(() => 
   for (const anc of mapAncestorsOf(id, parentOf.value).slice(1)) {
     if (effectiveSplitSet.value.has(anc)) {
       const name =
-        (hasOwn(byId.value, anc) ? byId.value[anc]?.name : undefined) ||
-        (hasOwn(resById.value, anc) ? resById.value[anc]?.title : undefined) ||
+        byId.value[anc]?.name ||
+        resById.value[anc]?.title ||
         anc;
       return { id: anc, name };
     }
@@ -6199,7 +6098,7 @@ const selectedVendoredInfo = computed<{
   const stageEl = stageData.value.els.find((x) => x.id === el.id);
   const idx = vendoredCopyIndex.value;
   const toEntry = (cid: string): VendoredPanelEntry => {
-    const target = hasOwn(byId.value, cid) ? byId.value[cid] : undefined;
+    const target = byId.value[cid];
     const label = target?.source?.path || target?.name || stripNodeKindPrefix(cid);
     const href = target?.source
       ? buildSourceHref(target.source)
@@ -6930,11 +6829,6 @@ function elementIconName(kind?: TuxMapElementKind | string): string {
   }
 }
 
-function normalizeArray(v?: string | string[]): string[] {
-  if (!v) return [];
-  return Array.isArray(v) ? v : [v];
-}
-
 const SAFE_STROKE_COLOR_RE =
   /^(?:#[0-9a-fA-F]{3,8}|var\(--[a-zA-Z0-9_-]+\)|(?:rgb|hsl)a?\([0-9.,%\s/]+\)|[a-zA-Z]{3,24})$/;
 
@@ -7360,35 +7254,22 @@ function buildSourceHref(src?: {
 
     <!-- Visual Key Legend: On-Screen Element & Link Kinds Only (#115, #123) -->
     <ul v-if="!effectiveIsListView" class="tux-map__legend" aria-label="Diagram key">
-      <template v-if="currentLevel === 4">
-        <li v-if="legendFlags.hasResource">
-          <i class="tux-map__swatch tux-map__swatch--card" /> Resource
-        </li>
-        <li v-if="legendFlags.hasRegion">
-          <i class="tux-map__swatch tux-map__swatch--region" /> Region or resource group
-        </li>
-        <li v-if="legendFlags.hasPlanned">
-          <i class="tux-map__swatch tux-map__swatch--planned" /> Planned
-        </li>
-      </template>
-      <template v-else>
-        <li v-if="legendFlags.hasPerson">
-          <i class="tux-map__swatch tux-map__swatch--person" /> Person
-        </li>
-        <li v-if="legendFlags.hasSystem">
-          <i class="tux-map__swatch tux-map__swatch--system" /> Primary system
-        </li>
-        <li v-if="legendFlags.hasCard">
-          <i class="tux-map__swatch tux-map__swatch--card" /> Container / component / module
-        </li>
-        <li v-if="legendFlags.hasRoute">
-          <i class="tux-map__swatch tux-map__swatch--route" /> HTTP route
-        </li>
-        <li v-if="legendFlags.hasExternal">
-          <i class="tux-map__swatch tux-map__swatch--external" /> External system
-        </li>
-        <li v-if="legendFlags.hasPlanned">
-          <i class="tux-map__swatch tux-map__swatch--planned" /> Planned
+      <!-- legendFlags sets only Level 4's flags at Level 4, and only the others elsewhere -->
+      <template
+        v-for="[flag, sw, text] in ([
+          ['hasResource', 'card', 'Resource'],
+          ['hasRegion', 'region', 'Region or resource group'],
+          ['hasPerson', 'person', 'Person'],
+          ['hasSystem', 'system', 'Primary system'],
+          ['hasCard', 'card', 'Container / component / module'],
+          ['hasRoute', 'route', 'HTTP route'],
+          ['hasExternal', 'external', 'External system'],
+          ['hasPlanned', 'planned', 'Planned'],
+        ] as const)"
+        :key="flag"
+      >
+        <li v-if="legendFlags[flag]">
+          <i class="tux-map__swatch" :class="`tux-map__swatch--${sw}`" /> {{ text }}
         </li>
       </template>
       <template v-if="showBlastRadius">
@@ -7476,9 +7357,9 @@ function buildSourceHref(src?: {
     <div v-if="activeTraceResult && selectedPanelEntity" class="tux-map__trace-banner">
       <span>
         Tracing path:
-        <b>{{ byId[activeTraceResult.from]?.name || resById[activeTraceResult.from]?.title || activeTraceResult.from }}</b>
+        <b>{{ getCardDisplayName(activeTraceResult.from) }}</b>
         →
-        <b>{{ byId[activeTraceResult.to]?.name || resById[activeTraceResult.to]?.title || activeTraceResult.to }}</b>
+        <b>{{ getCardDisplayName(activeTraceResult.to) }}</b>
         <template v-if="activeTraceResult.found">
           ({{ activeTraceResult.hops.length }} {{ activeTraceResult.hops.length === 1 ? "hop" : "hops" }})
         </template>
@@ -8234,40 +8115,20 @@ function buildSourceHref(src?: {
         aria-label="Annotation tools"
       >
         <button
+          v-for="[tool, label, title, icon] in ([
+            ['select', 'Select', 'Select & Inspect (V)', 'mouse-pointer'],
+            ['pen', 'Pen', 'Freehand Pen (P)', 'pen-tool'],
+            ['laser', 'Laser', 'Laser Pointer (L)', 'wand-sparkles'],
+            ['note', 'Note', 'Sticky Note (N)', 'sticky-note'],
+          ] as const)"
+          :key="tool"
           type="button"
-          :aria-pressed="activeTool === 'select'"
-          title="Select & Inspect (V)"
-          @click="activeTool = 'select'"
+          :aria-pressed="activeTool === tool"
+          :title="title"
+          @click="activeTool = tool"
         >
-          <Icon name="lucide:mouse-pointer" aria-hidden="true" />
-          <span class="tux-map__btn-lbl">Select</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'pen'"
-          title="Freehand Pen (P)"
-          @click="activeTool = 'pen'"
-        >
-          <Icon name="lucide:pen-tool" aria-hidden="true" />
-          <span class="tux-map__btn-lbl">Pen</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'laser'"
-          title="Laser Pointer (L)"
-          @click="activeTool = 'laser'"
-        >
-          <Icon name="lucide:wand-sparkles" aria-hidden="true" />
-          <span class="tux-map__btn-lbl">Laser</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'note'"
-          title="Sticky Note (N)"
-          @click="activeTool = 'note'"
-        >
-          <Icon name="lucide:sticky-note" aria-hidden="true" />
-          <span class="tux-map__btn-lbl">Note</span>
+          <Icon :name="`lucide:${icon}`" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">{{ label }}</span>
         </button>
         <button
           v-if="localStrokes.length > 0 || localNotes.length > 0"
@@ -8450,13 +8311,11 @@ function buildSourceHref(src?: {
                 </span>
               </button>
               <dl v-if="listRelsById.get(e.id)" class="tux-map__list-rels">
-                <template v-if="listRelsById.get(e.id)!.uses.length">
-                  <dt>Depends on</dt>
-                  <dd>{{ listRelsById.get(e.id)!.uses.join(", ") }}</dd>
-                </template>
-                <template v-if="listRelsById.get(e.id)!.usedBy.length">
-                  <dt>Used by</dt>
-                  <dd>{{ listRelsById.get(e.id)!.usedBy.join(", ") }}</dd>
+                <template v-for="[k, term] in ([['uses', 'Depends on'], ['usedBy', 'Used by']] as const)" :key="k">
+                  <template v-if="listRelsById.get(e.id)![k].length">
+                    <dt>{{ term }}</dt>
+                    <dd>{{ listRelsById.get(e.id)![k].join(", ") }}</dd>
+                  </template>
                 </template>
               </dl>
             </li>
@@ -8475,13 +8334,11 @@ function buildSourceHref(src?: {
                 <span class="tux-map__el-ds">{{ n.role }}</span>
               </button>
               <dl v-if="listRelsById.get(n.id)" class="tux-map__list-rels">
-                <template v-if="listRelsById.get(n.id)!.uses.length">
-                  <dt>Depends on</dt>
-                  <dd>{{ listRelsById.get(n.id)!.uses.join(", ") }}</dd>
-                </template>
-                <template v-if="listRelsById.get(n.id)!.usedBy.length">
-                  <dt>Used by</dt>
-                  <dd>{{ listRelsById.get(n.id)!.usedBy.join(", ") }}</dd>
+                <template v-for="[k, term] in ([['uses', 'Depends on'], ['usedBy', 'Used by']] as const)" :key="k">
+                  <template v-if="listRelsById.get(n.id)![k].length">
+                    <dt>{{ term }}</dt>
+                    <dd>{{ listRelsById.get(n.id)![k].join(", ") }}</dd>
+                  </template>
                 </template>
               </dl>
             </li>
@@ -8661,9 +8518,9 @@ function buildSourceHref(src?: {
             </div>
             <ol v-if="activeTraceResult && activeTraceResult.hops.length > 0" class="tux-map__trace-hops">
               <li v-for="(hop, hIdx) in activeTraceResult.hops" :key="`${hIdx}-${hop.from}-${hop.to}`">
-                <code>{{ byId[hop.from]?.name || resById[hop.from]?.title || hop.from }}</code>
+                <code>{{ getCardDisplayName(hop.from) }}</code>
                 <span> {{ hop.label }} → </span>
-                <code>{{ byId[hop.to]?.name || resById[hop.to]?.title || hop.to }}</code>
+                <code>{{ getCardDisplayName(hop.to) }}</code>
                 <span v-if="hop.at" class="tux-map__trace-at"> ({{ hop.at }})</span>
               </li>
             </ol>
@@ -9394,7 +9251,9 @@ function buildSourceHref(src?: {
 }
 
 /* a label that gives way to its icon on a narrower map, and in the canvas's drawing tools */
-.tux-map__drawtools .tux-map__btn-lbl {
+.tux-map__drawtools .tux-map__btn-lbl,
+.tux-map__blast-sr,
+.tux-map__sr {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -10656,8 +10515,6 @@ function buildSourceHref(src?: {
   top: 0;
   left: 0;
   pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .tux-map__level-mark-text {
@@ -10688,25 +10545,13 @@ function buildSourceHref(src?: {
 .tux-map__viewport--tool-note {
   touch-action: none;
   cursor: crosshair;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
-.tux-map__viewport--tool-pen .tux-map__el,
-.tux-map__viewport--tool-laser .tux-map__el,
-.tux-map__viewport--tool-note .tux-map__el,
-.tux-map__viewport--tool-pen .tux-map__el-zb,
-.tux-map__viewport--tool-laser .tux-map__el-zb,
-.tux-map__viewport--tool-note .tux-map__el-zb,
-.tux-map__viewport--tool-pen .tux-map__bound,
-.tux-map__viewport--tool-laser .tux-map__bound,
-.tux-map__viewport--tool-note .tux-map__bound,
-.tux-map__viewport--tool-pen .tux-map__lab,
-.tux-map__viewport--tool-laser .tux-map__lab,
-.tux-map__viewport--tool-note .tux-map__lab {
+:is(.tux-map__viewport--tool-pen, .tux-map__viewport--tool-laser, .tux-map__viewport--tool-note) .tux-map__el,
+:is(.tux-map__viewport--tool-pen, .tux-map__viewport--tool-laser, .tux-map__viewport--tool-note) .tux-map__el-zb,
+:is(.tux-map__viewport--tool-pen, .tux-map__viewport--tool-laser, .tux-map__viewport--tool-note) .tux-map__bound,
+:is(.tux-map__viewport--tool-pen, .tux-map__viewport--tool-laser, .tux-map__viewport--tool-note) .tux-map__lab {
   pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .tux-map__stage {
@@ -10715,8 +10560,6 @@ function buildSourceHref(src?: {
   top: 0;
   transform-origin: 0 0;
   will-change: transform, opacity;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 /* Floating pill that names a change of level */
@@ -11539,7 +11382,6 @@ function buildSourceHref(src?: {
   border: 2.5px solid var(--brand-primary);
 }
 
-.tux-map__el--k-system .tux-map__el-nm,
 .tux-map__el--k-system .tux-map__el-ds,
 .tux-map__el--k-system .tux-map__el-ty,
 .tux-map__el--k-system .tux-map__el-ft {
@@ -11568,19 +11410,7 @@ function buildSourceHref(src?: {
   background: color-mix(in srgb, var(--brand-primary) 7%, var(--surface-raised));
 }
 
-.tux-map__el--k-container .tux-map__el-ic,
-.tux-map__el--k-database .tux-map__el-ic,
-.tux-map__el--k-storage .tux-map__el-ic,
-.tux-map__el--k-component .tux-map__el-ic,
-.tux-map__el--k-module .tux-map__el-ic,
-.tux-map__el--k-folder .tux-map__el-ic,
-.tux-map__el--k-file .tux-map__el-ic,
-.tux-map__el--k-function .tux-map__el-ic,
-.tux-map__el--k-class .tux-map__el-ic,
-.tux-map__el--k-schema .tux-map__el-ic,
-.tux-map__el--k-symbol .tux-map__el-ic,
-.tux-map__el--k-route .tux-map__el-ic,
-.tux-map__el--k-resource .tux-map__el-ic {
+:is(.tux-map__el--k-container, .tux-map__el--k-database, .tux-map__el--k-storage, .tux-map__el--k-component, .tux-map__el--k-module, .tux-map__el--k-folder, .tux-map__el--k-file, .tux-map__el--k-function, .tux-map__el--k-class, .tux-map__el--k-schema, .tux-map__el--k-symbol, .tux-map__el--k-route, .tux-map__el--k-resource) .tux-map__el-ic {
   color: var(--tux-map-brand-ink);
 }
 
@@ -11695,7 +11525,6 @@ function buildSourceHref(src?: {
 .tux-map__chip--diff-modified,
 .tux-map__chip--diff-added {
   background: color-mix(in srgb, var(--status-warning) 22%, var(--surface-raised));
-  color: var(--text-primary);
   border-color: var(--status-warning);
 }
 
@@ -11703,7 +11532,6 @@ function buildSourceHref(src?: {
 .tux-map__chip--diff-impact,
 .tux-map__chip--violation {
   background: color-mix(in srgb, var(--status-critical) 18%, var(--surface-raised));
-  color: var(--text-primary);
   border-color: var(--status-critical);
 }
 
@@ -11711,7 +11539,6 @@ function buildSourceHref(src?: {
 .tux-map__chip--shared,
 .tux-map__chip--parts {
   background: var(--tux-map-brand-tint);
-  color: var(--text-primary);
   border-color: var(--brand-primary);
 }
 
@@ -12191,16 +12018,6 @@ function buildSourceHref(src?: {
   color: var(--text-muted);
   font-family: var(--font-mono);
   text-align: center;
-}
-
-/* "N steps away": read aloud with the hop number, never shown */
-.tux-map__blast-sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .tux-map__blast-go {
@@ -12833,14 +12650,6 @@ function buildSourceHref(src?: {
   line-height: 1.5;
 }
 
-.tux-map__sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .tux-map__panel,
