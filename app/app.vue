@@ -228,7 +228,7 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.14.0",
+    version: "v3.15.0",
     title: "Architecture Map Wayfinding, LCA Lifting & Lazy Subgraphs",
     era: "Architecture map · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
     badge: "Current",

@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+## [3.15.0] — 2026-11-13
+
+The architecture map gets a canvas you can zoom and pan, a Wires filter that works, a toolbar on one line, no flicker in a host that resizes to fit it, and 2.6 KB less code. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.14.0:
+
+- **Ctrl/Cmd + wheel and a trackpad pinch zoom the canvas** (#271) around the pointer; they used to change the level. The zoom control sits in the canvas's top-right corner (−, %, +, Fit) and A−/A+ have left the toolbar; Shift + wheel, a drag of the canvas and Space + drag pan; +, −, 0 and the arrows work on the focused canvas. A magnified map keeps its fitted height.
+- **The Wires filter** (#272) draws Tests, CI and Docs links at Level 2 as their own wires, says what each choice draws, and uses TUX's selectable chip.
+- **The toolbar is one line** (#273) at 1440 px and wider; below 1440 px of map width, Show planned and Blast radius move into More, and the drawing tools sit in the canvas's top-left corner.
+- **No flicker in a host that resizes to fit the map** (#268): a width gain of 24 px or less no longer re-fits it.
+- **The payload is 2.6 KB smaller** (#275); a test that spies on `computeLinkBlastRadius` to count the map's walks should spy on `walkLinkBlastRadius`.
+
 ### Changed — Architecture map: about 2.6 KB smaller, the same map (#275)
 
 - **What it no longer carries.** The map's blast radius runs an internal walk (`walkLinkBlastRadius`) that returns only what the map draws; the public `computeLinkBlastRadius()` is that walk plus its six further lists (blockers, co-cut candidates, tests, stamps, build steps, hosts), unchanged. Search runs `searchMapEntries()` over the entries the map already built, so the index builder for a raw model stays out of the map's payload; `searchArchitectureMap()` is unchanged. Both new functions are internal.
