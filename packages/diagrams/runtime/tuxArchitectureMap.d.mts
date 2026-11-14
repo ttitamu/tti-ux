@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 00f9d354ed83f80dcb05b44205fbee69004df370d9114a9c9d85072306146597
+// SOURCE-SHA256: 8b4d759246ea1abf4ad4d65632b795f39d79daf953b0802f9ebb4ed9eddede1e
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -1637,6 +1637,8 @@ export interface TuxMapBlastResult {
  * @public
  */
 export declare function computeLinkBlastRadius(links: TuxMapLink[], seedOrSeeds: string | Iterable<string>, parentOf: Map<string, string>, opts?: TuxMapBlastOptions): TuxMapBlastResult;
+/** @internal */
+export declare function walkLinkBlastRadius(links: TuxMapLink[], seedOrSeeds: string | Iterable<string>, parentOf: Map<string, string>, opts?: TuxMapBlastOptions): any;
 /**
  * How an element changed between two models.
  * @public
@@ -2262,6 +2264,16 @@ export declare function buildMapSearchIndexKept(model: TuxMapLevelModel, parentO
  * @public
  */
 export declare function searchArchitectureMap(modelOrEntries: TuxMapLevelModel | readonly TuxMapSearchEntry[], query: string, opts?: {
+    includePlanned?: boolean;
+    limitPerGroup?: number;
+}): {
+    query: string;
+    totalHits: number;
+    groups: TuxMapSearchGroupResult[];
+    flatHits: TuxMapSearchHit[];
+};
+/** @internal */
+export declare function searchMapEntries(entries: readonly TuxMapSearchEntry[], query: string, opts?: {
     includePlanned?: boolean;
     limitPerGroup?: number;
 }): {
