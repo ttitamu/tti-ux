@@ -2951,8 +2951,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // Linux runner), so the budget was 106,000 B. The bar on one line (#273: the drawing tools in the
   // canvas, the intent beside its key, the container rules that keep one line, the one-height
   // rules) adds 462 B (105,752 B on macOS, about 106,210 B on the Linux runner), so the budget was
-  // 106,500 B. A pass that cut what the map carries but never uses (#275
-275: the blast walk without the
+  // 106,500 B. A pass that cut what the map carries but never uses (#275: the blast walk without the
   // lists the map never reads, search without the index builder, shared stage helpers, redundant
   // guards, repeated template blocks as loops, merged selector lists) took it to 103,113 B on macOS
   // (about 103,580 B on the Linux runner), so the budget is 104,000 B until #242 sets it once.

@@ -18,8 +18,7 @@ conventions.
 
 ## [Unreleased]
 
-### Changed — Architecture map: about 2.6 KB smaller, the same map (#275
-275)
+### Changed — Architecture map: about 2.6 KB smaller, the same map (#275)
 
 - **What it no longer carries.** The map's blast radius runs an internal walk (`walkLinkBlastRadius`) that returns only what the map draws; the public `computeLinkBlastRadius()` is that walk plus its six further lists (blockers, co-cut candidates, tests, stamps, build steps, hosts), unchanged. Search runs `searchMapEntries()` over the entries the map already built, so the index builder for a raw model stays out of the map's payload; `searchArchitectureMap()` is unchanged. Both new functions are internal.
 - **Smaller code.** Repeated stage helpers are shared, 33 own-key guards on maps that have no prototype are gone, the legend, the drawing tools and the list view's two link lists are loops, three copies of the drill-in and the level jump share one helper, unused fields and a dead function are removed, and a few selector lists are merged.
